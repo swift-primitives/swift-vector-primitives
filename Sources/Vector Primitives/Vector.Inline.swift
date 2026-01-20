@@ -110,6 +110,67 @@ extension Vector.Inline where Element: ~Copyable {
         precondition(index >= 0 && index < N, "Index out of bounds")
         return try body(_elements[index])
     }
+
+    // MARK: - Pointer Access (Internal)
+
+    /// Returns the base pointer for element storage.
+    @usableFromInline
+    func _basePointer() -> UnsafePointer<Element> {
+        unsafe Swift.withUnsafePointer(to: _elements) { storagePtr in
+            let basePtr = unsafe UnsafeRawPointer(storagePtr)
+            return unsafe basePtr.assumingMemoryBound(to: Element.self)
+        }
+    }
+
+    /// Returns the mutable base pointer for element storage.
+    @usableFromInline
+    mutating func _mutableBasePointer() -> UnsafeMutablePointer<Element> {
+        unsafe Swift.withUnsafeMutablePointer(to: &_elements) { storagePtr in
+            let basePtr = UnsafeMutableRawPointer(storagePtr)
+            return unsafe basePtr.assumingMemoryBound(to: Element.self)
+        }
+    }
+
+    // MARK: - Span Access
+
+    /// Read-only span of all vector elements.
+    ///
+    /// Provides zero-copy access to the vector's contiguous storage.
+    /// Elements are ordered from index 0 to N-1.
+    ///
+    /// ## Lifetime Contract
+    ///
+    /// - The span is valid ONLY for the duration of the access.
+    /// - The span MUST NOT be stored, returned, or allowed to escape.
+    /// - The `_read` accessor enforces proper lifetime scoping.
+    @inlinable
+    public var span: Span<Element> {
+        _read {
+            yield unsafe Span(_unsafeStart: _basePointer(), count: N)
+        }
+    }
+
+    /// Mutable span of all vector elements.
+    ///
+    /// Provides zero-copy mutable access to the vector's contiguous storage.
+    /// Elements are ordered from index 0 to N-1.
+    ///
+    /// ## Lifetime Contract
+    ///
+    /// - The span is valid ONLY for the duration of the access.
+    /// - The span MUST NOT be stored, returned, or allowed to escape.
+    /// - The `_read`/`_modify` accessors enforce proper lifetime scoping.
+    @inlinable
+    public var mutableSpan: MutableSpan<Element> {
+        _read {
+            let ptr = unsafe UnsafeMutablePointer(mutating: _basePointer())
+            yield unsafe MutableSpan(_unsafeStart: ptr, count: N)
+        }
+        _modify {
+            var s = unsafe MutableSpan(_unsafeStart: _mutableBasePointer(), count: N)
+            yield &s
+        }
+    }
 }
 
 // MARK: - Copyable Only (Element: Copyable)

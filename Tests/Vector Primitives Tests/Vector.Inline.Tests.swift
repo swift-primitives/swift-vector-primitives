@@ -141,4 +141,34 @@ struct `Vector.Inline Tests` {
         #expect(v[0] == 3.14)
         #expect(v[1] == 2.71)
     }
+
+    // MARK: - Span Access
+
+    @Test
+    func `span read access`() {
+        let v = IntVec3([10, 20, 30])
+        var sum = 0
+        let s = v.span
+        for i in s.indices {
+            sum += s[i]
+        }
+        #expect(sum == 60)
+    }
+
+    @Test
+    func `span count matches dimension`() {
+        let v = IntVec3([1, 2, 3])
+        #expect(v.span.count == 3)
+    }
+
+    @Test
+    func `mutableSpan write access`() {
+        var v = IntVec3([1, 2, 3])
+        v.mutableSpan[0] = 100
+        v.mutableSpan[1] = 200
+        v.mutableSpan[2] = 300
+        #expect(v[0] == 100)
+        #expect(v[1] == 200)
+        #expect(v[2] == 300)
+    }
 }
