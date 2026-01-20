@@ -215,6 +215,35 @@ extension Vector where Element: ~Copyable {
 // MARK: - Copyable-Only API
 
 extension Vector where Element: Copyable {
+    /// Accesses the element at the given index with copy-on-write semantics.
+    ///
+    /// This subscript overrides the unconstrained version to ensure CoW for Copyable elements.
+    /// - Precondition: `index` must be in `0..<N`.
+    @inlinable
+    public subscript(index: Int) -> Element {
+        _read {
+            precondition(index >= 0 && index < N, "Index out of bounds")
+            yield unsafe _cachedPtr[index]
+        }
+        _modify {
+            _makeUnique()
+            precondition(index >= 0 && index < N, "Index out of bounds")
+            yield unsafe &_cachedPtr[index]
+        }
+    }
+
+    /// Mutable span with copy-on-write semantics.
+    ///
+    /// This property overrides the unconstrained version to ensure CoW for Copyable elements.
+    public var mutableSpan: MutableSpan<Element> {
+        @_lifetime(&self)
+        @inlinable
+        mutating get {
+            _makeUnique()
+            return unsafe MutableSpan(_unsafeStart: _cachedPtr, count: N)
+        }
+    }
+
     /// Creates a vector by consuming an inline array.
     @inlinable
     public init(_ elements: consuming InlineArray<N, Element>) {
