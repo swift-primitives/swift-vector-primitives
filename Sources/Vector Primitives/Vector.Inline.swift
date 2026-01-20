@@ -1,27 +1,32 @@
 // Vector.Inline.swift
-// Fixed-size, fully-initialized vector with compile-time dimension.
+// Fixed-size vector with inline storage (zero heap allocation).
 
 // MARK: - Type Declaration
 
 extension Vector where Element: ~Copyable {
-    /// Fixed-size, fully-initialized vector with compile-time dimension.
+    /// Fixed-size vector with inline storage.
     ///
-    /// Storage is `InlineArray<N, Element>` directly. Always fully initialized.
-    /// No manual deinit needed - InlineArray handles element lifetime.
+    /// Uses `InlineArray<N, Element>` for zero-allocation stack storage.
+    /// Preferred for small dimensions (2, 3, 4) where heap allocation is unnecessary.
     ///
     /// ## Usage
     ///
     /// ```swift
-    /// let v = Vector<Int>.Inline<3>([1, 2, 3])
+    /// let v = Vector<Int, 3>.Inline([1, 2, 3])
     /// print(v[0])  // 1
     /// ```
     ///
     /// ## ~Copyable Support
     ///
     /// `Inline` is ~Copyable by default and conditionally Copyable when `Element: Copyable`.
-    /// Unlike `Stack.Inline`, this type can be conditionally Copyable because InlineArray
-    /// handles element lifetime automatically (no manual deinit required).
-    public struct Inline<let N: Int>: ~Copyable {
+    /// Unlike heap-allocated `Vector`, this type can be conditionally Copyable because
+    /// InlineArray handles element lifetime automatically (no manual deinit required).
+    ///
+    /// ## When to Use
+    ///
+    /// - **Use `Vector.Inline`** for small vectors (N ≤ ~16) where stack allocation is preferred
+    /// - **Use `Vector`** for large vectors where heap allocation avoids stack overflow
+    public struct Inline: ~Copyable {
         /// Internal storage.
         @usableFromInline
         internal var _elements: InlineArray<N, Element>
@@ -137,12 +142,6 @@ extension Vector.Inline where Element: ~Copyable {
     ///
     /// Provides zero-copy access to the vector's contiguous storage.
     /// Elements are ordered from index 0 to N-1.
-    ///
-    /// ## Lifetime Contract
-    ///
-    /// - The span is valid ONLY for the duration of the access.
-    /// - The span MUST NOT be stored, returned, or allowed to escape.
-    /// - The `_read` accessor enforces proper lifetime scoping.
     @inlinable
     public var span: Span<Element> {
         _read {
@@ -154,12 +153,6 @@ extension Vector.Inline where Element: ~Copyable {
     ///
     /// Provides zero-copy mutable access to the vector's contiguous storage.
     /// Elements are ordered from index 0 to N-1.
-    ///
-    /// ## Lifetime Contract
-    ///
-    /// - The span is valid ONLY for the duration of the access.
-    /// - The span MUST NOT be stored, returned, or allowed to escape.
-    /// - The `_read`/`_modify` accessors enforce proper lifetime scoping.
     @inlinable
     public var mutableSpan: MutableSpan<Element> {
         _read {
@@ -182,7 +175,7 @@ extension Vector.Inline where Element: Copyable {
         self._elements = InlineArray(repeating: value)
     }
 
-    /// Total accessor - returns nil for invalid index per [API-IMPL-003].
+    /// Total accessor - returns nil for invalid index.
     ///
     /// This method is only available for `Copyable` elements because `Optional`
     /// requires `Copyable` wrapped values.
