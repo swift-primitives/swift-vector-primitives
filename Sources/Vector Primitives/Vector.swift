@@ -162,14 +162,13 @@ extension Vector where Element: ~Copyable {
 
     /// Borrowing access at index.
     ///
-    /// - Precondition: `index` must be in `0..<N`.
+    /// - Parameter index: The bounded index of the element to access.
     @inlinable
     public func withElement<R, E: Error>(
-        at index: Int,
+        at index: Index,
         _ body: (borrowing Element) throws(E) -> R
     ) rethrows -> R {
-        precondition(index >= 0 && index < N, "Index out of bounds")
-        return try unsafe body(_cachedPtr[index])
+        return try unsafe body(_cachedPtr[index.rawValue])
     }
 
     // MARK: - Span Access
@@ -200,23 +199,6 @@ extension Vector where Element: ~Copyable {
 // MARK: - Copyable-Only API
 
 extension Vector where Element: Copyable {
-    /// Accesses the element at the given index with copy-on-write semantics.
-    ///
-    /// This subscript overrides the unconstrained version to ensure CoW for Copyable elements.
-    /// - Precondition: `index` must be in `0..<N`.
-    @inlinable
-    public subscript(index: Int) -> Element {
-        _read {
-            precondition(index >= 0 && index < N, "Index out of bounds")
-            yield unsafe _cachedPtr[index]
-        }
-        _modify {
-            _makeUnique()
-            precondition(index >= 0 && index < N, "Index out of bounds")
-            yield unsafe &_cachedPtr[index]
-        }
-    }
-
     /// Mutable span with copy-on-write semantics.
     ///
     /// This property overrides the unconstrained version to ensure CoW for Copyable elements.
@@ -247,13 +229,6 @@ extension Vector where Element: Copyable {
         for i in 0..<N {
             _storage._initializeElement(at: i, to: value)
         }
-    }
-
-    /// Total accessor - returns nil for invalid index.
-    @inlinable
-    public func element(at index: Int) -> Element? {
-        guard index >= 0 && index < N else { return nil }
-        return unsafe _cachedPtr[index]
     }
 
     /// The vector elements as an inline array.

@@ -95,14 +95,13 @@ extension Vector.Inline where Element: ~Copyable {
 
     /// Borrowing access at index.
     ///
-    /// - Precondition: `index` must be in `0..<N`.
+    /// - Parameter index: The bounded index of the element to access.
     @inlinable
     public func withElement<R, E: Error>(
-        at index: Int,
+        at index: Vector<Element, N>.Index,
         _ body: (borrowing Element) throws(E) -> R
     ) rethrows -> R {
-        precondition(index >= 0 && index < N, "Index out of bounds")
-        return try body(_elements[index])
+        return try body(_elements[index.rawValue])
     }
 
     // MARK: - Pointer Access (Internal)
@@ -162,15 +161,5 @@ extension Vector.Inline where Element: Copyable {
     @inlinable
     public init(repeating value: Element) {
         self._elements = InlineArray(repeating: value)
-    }
-
-    /// Total accessor - returns nil for invalid index.
-    ///
-    /// This method is only available for `Copyable` elements because `Optional`
-    /// requires `Copyable` wrapped values.
-    @inlinable
-    public func element(at index: Int) -> Element? {
-        guard index >= 0 && index < N else { return nil }
-        return _elements[index]
     }
 }
