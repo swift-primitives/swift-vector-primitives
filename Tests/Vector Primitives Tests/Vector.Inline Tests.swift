@@ -65,9 +65,12 @@ struct VectorInlineUnitTests {
     @Test("element(at:) valid index")
     func elementAtValidIndex() {
         let v = IntVec3([1, 2, 3])
-        #expect(v.element(at: 0) == 1)
-        #expect(v.element(at: 1) == 2)
-        #expect(v.element(at: 2) == 3)
+        let idx0: Vector<Int, 3>.Index = 0
+        let idx1: Vector<Int, 3>.Index = 1
+        let idx2: Vector<Int, 3>.Index = 2
+        #expect(v.element(at: idx0) == 1)
+        #expect(v.element(at: idx1) == 2)
+        #expect(v.element(at: idx2) == 3)
     }
 
     @Test("forEach iterates all elements")
@@ -83,7 +86,8 @@ struct VectorInlineUnitTests {
     @Test("withElement borrowing access")
     func withElementBorrowingAccess() {
         let v = IntVec3([10, 20, 30])
-        let result = v.withElement(at: 1) { element in
+        let idx: Vector<Int, 3>.Index = 1
+        let result = v.withElement(at: idx) { element in
             element * 2
         }
         #expect(result == 40)
@@ -138,22 +142,14 @@ struct VectorInlineUnitTests {
 
 @Suite("Vector.Inline EdgeCase")
 struct VectorInlineEdgeCaseTests {
-    @Test("element(at:) invalid index returns nil")
-    func elementAtInvalidIndexReturnsNil() {
-        let v = Vector<Int, 3>.Inline([1, 2, 3])
-        #expect(v.element(at: -1) == nil)
-        #expect(v.element(at: 3) == nil)
-        #expect(v.element(at: 100) == nil)
-    }
-
     @Test("single element vector")
     func singleElementVector() {
         typealias IntVec1 = Vector<Int, 1>.Inline
         let v = IntVec1([42])
         #expect(IntVec1.dimension == 1)
         #expect(v[0] == 42)
-        #expect(v.element(at: 0) == 42)
-        #expect(v.element(at: 1) == nil)
+        let idx: Vector<Int, 1>.Index = 0
+        #expect(v.element(at: idx) == 42)
     }
 
     @Test("double values precision")
@@ -167,8 +163,8 @@ struct VectorInlineEdgeCaseTests {
     func largeDimensionVector() {
         let v = Vector<Int, 10>.Inline(repeating: 7)
         #expect(Vector<Int, 10>.Inline.dimension == 10)
-        for i in v.span.indices {
-            #expect(v.span[i] == 7)
+        for i in try! (0..<10).map(Vector<Int, 10>.Index.init) {
+            #expect(v[i] == 7)
         }
     }
 }

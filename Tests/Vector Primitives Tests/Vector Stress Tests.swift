@@ -51,7 +51,6 @@ struct VectorStressTests {
         v[0] = 999
         #expect(v[0] == 999)
         #expect(v.element(at: 0) == 999)
-        #expect(v.element(at: 1) == nil)
         #expect(v.span.count == 1)
     }
 
@@ -59,7 +58,7 @@ struct VectorStressTests {
     func largeDimensionVector() {
         let v = Vector<Int, 100>(repeating: 7)
         #expect(Vector<Int, 100>.dimension == 100)
-        for i in 0..<100 {
+        for i in try! (0..<100).map(Vector<Int, 100>.Index.init) {
             #expect(v[i] == 7)
         }
         #expect(v.span.count == 100)
@@ -72,8 +71,8 @@ struct VectorStressTests {
     @Test("very large dimension vector (1000 elements)")
     func veryLargeDimensionVector() {
         var v = Vector<Int, 1000>(repeating: 0)
-        for i in 0..<1000 {
-            v[i] = i
+        for i in try! (0..<1000).map(Vector<Int, 1000>.Index.init) {
+            v[i] = i.rawValue
         }
 
         var sum = 0
@@ -134,15 +133,16 @@ struct VectorStressTests {
     @Test("rapid mutation cycles")
     func rapidMutationCycles() {
         var v = Vector<Int, 10>(repeating: 0)
+        let indices = try! (0..<10).map(Vector<Int, 10>.Index.init)
 
         for cycle in 0..<1000 {
-            for i in 0..<10 {
-                v[i] = cycle * 10 + i
+            for i in indices {
+                v[i] = cycle * 10 + i.rawValue
             }
 
             // Verify
-            for i in 0..<10 {
-                #expect(v[i] == cycle * 10 + i)
+            for i in indices {
+                #expect(v[i] == cycle * 10 + i.rawValue)
             }
         }
     }
@@ -291,10 +291,11 @@ struct VectorStressTests {
 
         var v = Vector<LargeStruct, 10>(repeating: LargeStruct())
 
-        for i in 0..<10 {
-            v[i] = LargeStruct(a: Int64(i), b: Int64(i*2), c: Int64(i*3),
-                              d: Int64(i*4), e: Int64(i*5), f: Int64(i*6),
-                              g: Int64(i*7), h: Int64(i*8))
+        for i in try! (0..<10).map(Vector<LargeStruct, 10>.Index.init) {
+            let n = i.rawValue
+            v[i] = LargeStruct(a: Int64(n), b: Int64(n*2), c: Int64(n*3),
+                              d: Int64(n*4), e: Int64(n*5), f: Int64(n*6),
+                              g: Int64(n*7), h: Int64(n*8))
         }
 
         #expect(v[5].a == 5)
@@ -372,7 +373,8 @@ struct VectorInlineStressTests {
             TrackedValue(300, tracker: tracker)
         ])
 
-        let result = v.withElement(at: 1) { element in
+        let idx: Vector<TrackedValue, 3>.Index = 1
+        let result = v.withElement(at: idx) { element in
             element.value * 2
         }
         #expect(result == 400)
@@ -532,12 +534,13 @@ struct VectorConcurrentTests {
     @Test("concurrent reads")
     func concurrentReads() async {
         let v = Vector<Int, 100>(repeating: 42)
+        let indices = try! (0..<100).map(Vector<Int, 100>.Index.init)
 
         await withTaskGroup(of: Int.self) { group in
             for _ in 0..<100 {
                 group.addTask {
                     var sum = 0
-                    for i in 0..<100 {
+                    for i in indices {
                         sum += v[i]
                     }
                     return sum
@@ -553,13 +556,14 @@ struct VectorConcurrentTests {
     @Test("concurrent copies then independent mutations")
     func concurrentCopiesThenMutations() async {
         let original = Vector<Int, 10>(repeating: 0)
+        let indices = try! (0..<10).map(Vector<Int, 10>.Index.init)
 
         let results = await withTaskGroup(of: Vector<Int, 10>.self, returning: [Vector<Int, 10>].self) { group in
             for taskId in 0..<10 {
                 group.addTask {
                     var copy = original
-                    for i in 0..<10 {
-                        copy[i] = taskId * 10 + i
+                    for i in indices {
+                        copy[i] = taskId * 10 + i.rawValue
                     }
                     return copy
                 }
@@ -576,7 +580,7 @@ struct VectorConcurrentTests {
         #expect(results.count == 10)
 
         // Original should be unchanged
-        for i in 0..<10 {
+        for i in indices {
             #expect(original[i] == 0)
         }
     }
@@ -603,12 +607,10 @@ struct VectorPathologicalTests {
         #expect(v[1] == 42)
         #expect(v[2] == nil)
 
-        // element(at:) returns Element? which is Int??
-        let result: Int?? = v.element(at: 1)
-        #expect(result == .some(.some(42)))
-
-        let outOfBounds: Int?? = v.element(at: 10)
-        #expect(outOfBounds == nil) // Outer optional is nil
+        // element(at:) with typed Index returns Element (Int?)
+        let idx: Vector<Int?, 3>.Index = 1
+        let result: Int? = v.element(at: idx)
+        #expect(result == .some(42))
     }
 
     @Test("string elements with unicode")

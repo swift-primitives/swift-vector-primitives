@@ -409,7 +409,7 @@ struct SpanBenchmarks {
         // Subscript access
         var sum1 = 0
         let (_, subscriptPer) = measureTime(iterations) {
-            for i in 0..<100 {
+            for i in try! (0..<100).map(Vector<Int, 100>.Index.init) {
                 sum1 &+= v[i]
             }
         }
