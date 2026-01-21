@@ -395,7 +395,7 @@ struct VectorInlineStressTests {
     func largeInlineVector() {
         var v = Vector<Int, 50>.Inline(repeating: 0)
         for i in 0..<50 {
-            v[i] = i * i
+            v.mutableSpan[i] = i * i
         }
 
         #expect(v[0] == 0)
@@ -415,11 +415,11 @@ struct VectorInlineStressTests {
 
         for cycle in 0..<1000 {
             for i in 0..<10 {
-                v[i] = cycle * 10 + i
+                v.mutableSpan[i] = cycle * 10 + i
             }
 
-            for i in 0..<10 {
-                #expect(v[i] == cycle * 10 + i)
+            for i in v.span.indices {
+                #expect(v.span[i] == cycle * 10 + i)
             }
         }
     }
@@ -445,8 +445,8 @@ struct VectorInlineStressTests {
 
         // Modify again (span out of scope)
         for i in 0..<20 {
-            let current = v[i]
-            v[i] = current + 1
+            let current = v.span[i]
+            v.mutableSpan[i] = current + 1
         }
 
         #expect(v[0] == 1)

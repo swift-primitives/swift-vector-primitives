@@ -152,21 +152,6 @@ extension Vector where Element: ~Copyable {
     @inlinable
     public static var dimension: Int { N }
 
-    /// Accesses the element at the given index.
-    ///
-    /// - Precondition: `index` must be in `0..<N`.
-    @inlinable
-    public subscript(index: Int) -> Element {
-        _read {
-            precondition(index >= 0 && index < N, "Index out of bounds")
-            yield unsafe _cachedPtr[index]
-        }
-        _modify {
-            precondition(index >= 0 && index < N, "Index out of bounds")
-            yield unsafe &_cachedPtr[index]
-        }
-    }
-
     /// Borrowing iteration.
     @inlinable
     public func forEach<E: Error>(_ body: (borrowing Element) throws(E) -> Void) rethrows {

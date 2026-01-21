@@ -17,9 +17,17 @@ let package = Package(
             targets: ["Vector Primitives"]
         )
     ],
+    dependencies: [
+        .package(path: "../swift-affine-primitives"),
+        .package(path: "../swift-bit-primitives"),
+    ],
     targets: [
         .target(
-            name: "Vector Primitives"
+            name: "Vector Primitives",
+            dependencies: [
+                .product(name: "Affine Primitives", package: "swift-affine-primitives"),
+                .product(name: "Bit Primitives", package: "swift-bit-primitives"),
+            ]
         ),
         .testTarget(
             name: "Vector Primitives Tests",

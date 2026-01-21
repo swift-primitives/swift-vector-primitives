@@ -85,17 +85,6 @@ extension Vector.Inline where Element: ~Copyable {
         _modify { yield &_elements }
     }
 
-    /// Accesses the element at the given index.
-    ///
-    /// Uses `_read`/`_modify` accessors for proper borrowing semantics with ~Copyable elements.
-    ///
-    /// - Precondition: `index` must be in `0..<N`.
-    @inlinable
-    public subscript(index: Int) -> Element {
-        _read { yield _elements[index] }
-        _modify { yield &_elements[index] }
-    }
-
     /// Borrowing iteration.
     @inlinable
     public func forEach<E: Error>(_ body: (borrowing Element) throws(E) -> Void) rethrows {

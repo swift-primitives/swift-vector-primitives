@@ -167,8 +167,8 @@ struct VectorInlineEdgeCaseTests {
     func largeDimensionVector() {
         let v = Vector<Int, 10>.Inline(repeating: 7)
         #expect(Vector<Int, 10>.Inline.dimension == 10)
-        for i in 0..<10 {
-            #expect(v[i] == 7)
+        for i in v.span.indices {
+            #expect(v.span[i] == 7)
         }
     }
 }
