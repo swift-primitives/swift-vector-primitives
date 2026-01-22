@@ -23,6 +23,8 @@ let package = Package(
         .package(path: "../swift-finite-primitives"),
         .package(path: "../swift-index-primitives"),
         .package(path: "../swift-ordinal-primitives"),
+        .package(path: "../swift-algebra-primitives"),
+        .package(path: "../swift-dimension-primitives"),
     ],
     targets: [
         .target(
@@ -33,6 +35,8 @@ let package = Package(
                 .product(name: "Finite Primitives", package: "swift-finite-primitives"),
                 .product(name: "Index Primitives", package: "swift-index-primitives"),
                 .product(name: "Ordinal Primitives", package: "swift-ordinal-primitives"),
+                .product(name: "Algebra Primitives", package: "swift-algebra-primitives"),
+                .product(name: "Dimension Primitives", package: "swift-dimension-primitives"),
             ]
         ),
         .testTarget(
