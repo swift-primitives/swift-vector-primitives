@@ -9,22 +9,22 @@
 //
 // ===----------------------------------------------------------------------===//
 
-import Affine_Primitives
+import Cyclic_Primitives
 
 extension Vector where Element: ~Copyable {
     /// Type-safe bounded index for vector elements.
     ///
-    /// Uses `Affine.Discrete.Bounded<N>` to provide compile-time bounds safety,
+    /// Uses `Cyclic.Group<N>` to provide compile-time bounds safety,
     /// ensuring indices are always valid for this vector's dimension.
     ///
     /// ## Example
     ///
     /// ```swift
-    /// let idx: Vector<Int, 3>.Index = Vector<Int, 3>.Index(1)!
+    /// let idx: Vector<Int, 3>.Index = try! Vector<Int, 3>.Index(1)
     /// var v = Vector<Int, 3>.Inline([1, 2, 3])
     /// print(v[idx])  // 2
     /// ```
-    public typealias Index = Affine.Discrete.Bounded<N>
+    public typealias Index = Cyclic.Group<N>
 }
 
 // MARK: - Typed Subscript (Vector)
