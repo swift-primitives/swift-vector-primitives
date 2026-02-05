@@ -336,13 +336,11 @@ struct VectorInlineStressTests {
         let tracker = DeinitTracker()
 
         do {
-            let v = Vector<TrackedValue, 3>.Inline(
-                [
-                    TrackedValue(1, tracker: tracker),
-                    TrackedValue(2, tracker: tracker),
-                    TrackedValue(3, tracker: tracker)
-                ]
-            )
+            let v = unsafe Vector<TrackedValue, 3>.Inline(initializing: { ptr in
+                unsafe (ptr + 0).initialize(to: TrackedValue(1, tracker: tracker))
+                unsafe (ptr + 1).initialize(to: TrackedValue(2, tracker: tracker))
+                unsafe (ptr + 2).initialize(to: TrackedValue(3, tracker: tracker))
+            })
             #expect(tracker.count == 0)
             _ = v[0].value // Access to prevent unused warning
         }
@@ -355,13 +353,11 @@ struct VectorInlineStressTests {
     func moveOnlyForEachBorrowing() {
         let tracker = DeinitTracker()
 
-        let v = Vector<TrackedValue, 3>.Inline(
-            [
-                TrackedValue(10, tracker: tracker),
-                TrackedValue(20, tracker: tracker),
-                TrackedValue(30, tracker: tracker)
-            ]
-        )
+        let v = unsafe Vector<TrackedValue, 3>.Inline { ptr in
+            unsafe (ptr + 0).initialize(to: TrackedValue(10, tracker: tracker))
+            unsafe (ptr + 1).initialize(to: TrackedValue(20, tracker: tracker))
+            unsafe (ptr + 2).initialize(to: TrackedValue(30, tracker: tracker))
+        }
 
         var sum = 0
         v.forEach { element in
@@ -378,11 +374,11 @@ struct VectorInlineStressTests {
     func moveOnlyWithElementBorrowing() {
         let tracker = DeinitTracker()
 
-        let v = Vector<TrackedValue, 3>.Inline([
-            TrackedValue(100, tracker: tracker),
-            TrackedValue(200, tracker: tracker),
-            TrackedValue(300, tracker: tracker)
-        ])
+        let v = unsafe Vector<TrackedValue, 3>.Inline(initializing: { ptr in
+            unsafe (ptr + 0).initialize(to: TrackedValue(100, tracker: tracker))
+            unsafe (ptr + 1).initialize(to: TrackedValue(200, tracker: tracker))
+            unsafe (ptr + 2).initialize(to: TrackedValue(300, tracker: tracker))
+        })
 
         let idx: Vector<TrackedValue, 3>.Index = 1
         let result = v.withElement(at: idx) { element in
@@ -485,22 +481,6 @@ struct VectorInlineStressTests {
         #expect(v[3] == Double.leastNormalMagnitude)
         #expect(v[4] == Double.leastNonzeroMagnitude)
         #expect(v[5] == Double.ulpOfOne)
-    }
-
-    // MARK: - Copy Semantics (Inline is Copyable when Element is)
-
-    @Test("inline copy independence")
-    func inlineCopyIndependence() {
-        var v1 = Vector<Int, 5>.Inline([1, 2, 3, 4, 5])
-        var v2 = v1 // Copy
-
-        v1[0] = 100
-        v2[4] = 500
-
-        #expect(v1[0] == 100)
-        #expect(v1[4] == 5)
-        #expect(v2[0] == 1)
-        #expect(v2[4] == 500)
     }
 
     // MARK: - Large Element Stress

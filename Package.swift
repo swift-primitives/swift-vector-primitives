@@ -17,6 +17,18 @@ let package = Package(
             targets: ["Vector Primitives"]
         ),
         .library(
+            name: "Vector Primitives Core",
+            targets: ["Vector Primitives Core"]
+        ),
+        .library(
+            name: "Vector Fixed Primitives",
+            targets: ["Vector Fixed Primitives"]
+        ),
+        .library(
+            name: "Vector Inline Primitives",
+            targets: ["Vector Inline Primitives"]
+        ),
+        .library(
             name: "Vector Primitives Test Support",
             targets: ["Vector Primitives Test Support"]
         ),
@@ -30,13 +42,29 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "Vector Primitives",
+            name: "Vector Primitives Core",
             dependencies: [
                 .product(name: "Buffer Primitives", package: "swift-buffer-primitives"),
                 .product(name: "Algebra Modular Primitives", package: "swift-algebra-modular-primitives"),
                 .product(name: "Index Primitives", package: "swift-index-primitives"),
                 .product(name: "Equation Primitives", package: "swift-equation-primitives"),
                 .product(name: "Hash Primitives", package: "swift-hash-primitives"),
+            ]
+        ),
+        .target(
+            name: "Vector Fixed Primitives",
+            dependencies: ["Vector Primitives Core"]
+        ),
+        .target(
+            name: "Vector Inline Primitives",
+            dependencies: ["Vector Primitives Core"]
+        ),
+        .target(
+            name: "Vector Primitives",
+            dependencies: [
+                "Vector Primitives Core",
+                "Vector Fixed Primitives",
+                "Vector Inline Primitives",
             ]
         ),
         .target(

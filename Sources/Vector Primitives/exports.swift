@@ -1,8 +1,6 @@
 // exports.swift
-// Re-export dependencies for consumers.
+// Umbrella module re-exporting all Vector Primitives modules.
 
-@_exported import Buffer_Primitives
-@_exported import Algebra_Modular_Primitives
-@_exported import Index_Primitives
-@_exported import Equation_Primitives
-@_exported import Hash_Primitives
+@_exported public import Vector_Primitives_Core
+@_exported public import Vector_Fixed_Primitives
+@_exported public import Vector_Inline_Primitives
