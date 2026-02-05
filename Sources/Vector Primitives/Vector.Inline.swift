@@ -86,6 +86,39 @@ extension Vector.Inline where Element: ~Copyable {
     @inlinable
     public static var dimension: Int { N }
 
+    // MARK: - Initialization
+
+    /// Creates a vector by initializing elements via a closure.
+    ///
+    /// The closure receives a pointer to uninitialized storage and MUST initialize
+    /// exactly `N` elements before returning. This is the primary initializer for
+    /// `~Copyable` element types.
+    ///
+    /// ## Example
+    ///
+    /// ```swift
+    /// struct Resource: ~Copyable { let id: Int }
+    ///
+    /// let v = Vector<Resource, 3>.Inline { ptr in
+    ///     (ptr + 0).initialize(to: Resource(id: 1))
+    ///     (ptr + 1).initialize(to: Resource(id: 2))
+    ///     (ptr + 2).initialize(to: Resource(id: 3))
+    /// }
+    /// ```
+    ///
+    /// - Parameter initializer: A closure that receives a pointer to uninitialized
+    ///   storage and must initialize exactly `N` elements.
+    /// - Precondition: The closure must initialize exactly `N` contiguous elements
+    ///   starting at the provided pointer.
+    @inlinable
+    public init(initializing initializer: (UnsafeMutablePointer<Element>) -> Void) {
+        self._storage = Storage<Element>.Inline<N>()
+        let ptr: UnsafeMutablePointer<Element> = unsafe _storage.pointer(at: .zero)
+        unsafe initializer(ptr)
+        _storage.initialization = .linear(count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N))))
+    }
+
+
     /// Borrowing iteration.
     @inlinable
     public func forEach<E: Error>(_ body: (borrowing Element) throws(E) -> Void) rethrows {
@@ -146,10 +179,14 @@ extension Vector.Inline where Element: Copyable {
     public init(_ elements: InlineArray<N, Element>) {
         self._storage = Storage<Element>.Inline<N>()
         for i in 0..<N {
-            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            _storage.initialize(to: elements[i], at: slot)
+            _storage.initialize(
+                to: elements[i],
+                at: Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            )
         }
-        _storage.initialization = .linear(count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N))))
+        _storage.initialization = .linear(
+            count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N)))
+        )
     }
 
     /// Creates a vector with all elements set to value.

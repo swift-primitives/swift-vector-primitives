@@ -147,7 +147,9 @@ extension Vector where Element: Copyable {
             return unsafe _overrideLifetime(span, mutating: &self)
         }
     }
+}
 
+extension Vector where Element: Copyable {
     /// Creates a vector by consuming an inline array.
     @inlinable
     public init(_ elements: consuming InlineArray<N, Element>) {
@@ -160,7 +162,9 @@ extension Vector where Element: Copyable {
         storage.initialization = .linear(count: capacity)
         self._storage = storage
     }
+}
 
+extension Vector where Element: Copyable {
     /// Creates a vector with all elements set to value.
     @inlinable
     public init(repeating value: Element) {
@@ -173,7 +177,9 @@ extension Vector where Element: Copyable {
         storage.initialization = .linear(count: capacity)
         self._storage = storage
     }
+}
 
+extension Vector where Element: Copyable {
     /// The vector elements as an inline array.
     @inlinable
     public var elements: InlineArray<N, Element> {
@@ -194,7 +200,9 @@ extension Vector where Element: Copyable {
             }
         }
     }
+}
 
+extension Vector where Element: Copyable {
     // MARK: - Copy-on-Write
 
     /// Ensures unique ownership of storage for mutation.
