@@ -9,22 +9,20 @@
 //
 // ===----------------------------------------------------------------------===//
 
-import Cyclic_Primitives
-
 extension Vector where Element: ~Copyable {
     /// Type-safe bounded index for vector elements.
     ///
-    /// Uses `Cyclic.Group<N>` to provide compile-time bounds safety,
+    /// Uses `Algebra.Z<N>` to provide compile-time bounds safety,
     /// ensuring indices are always valid for this vector's dimension.
     ///
     /// ## Example
     ///
     /// ```swift
-    /// let idx: Vector<Int, 3>.Index = try! Vector<Int, 3>.Index(1)
+    /// let idx: Vector<Int, 3>.Index = try! Vector<Int, 3>.Index(0)
     /// var v = Vector<Int, 3>.Inline([1, 2, 3])
-    /// print(v[idx])  // 2
+    /// print(v[idx])  // 1
     /// ```
-    public typealias Index = Cyclic.Group<N>
+    public typealias Index = Algebra.Z<N>
 }
 
 // MARK: - Typed Subscript (Vector)
@@ -36,10 +34,12 @@ extension Vector where Element: ~Copyable {
     @inlinable
     public subscript(index: Index) -> Element {
         _read {
-            yield unsafe _cachedPtr[index.rawValue]
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe _storage.pointer(at: slot).pointee
         }
         _modify {
-            yield unsafe &_cachedPtr[index.rawValue]
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe &_storage.pointer(at: slot).pointee
         }
     }
 }
@@ -51,11 +51,13 @@ extension Vector where Element: Copyable {
     @inlinable
     public subscript(index: Index) -> Element {
         _read {
-            yield unsafe _cachedPtr[index.rawValue]
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe _storage.pointer(at: slot).pointee
         }
         _modify {
             _makeUnique()
-            yield unsafe &_cachedPtr[index.rawValue]
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe &_storage.pointer(at: slot).pointee
         }
     }
 }
@@ -68,8 +70,14 @@ extension Vector.Inline where Element: ~Copyable {
     /// - Parameter index: The bounded index of the element to access.
     @inlinable
     public subscript(index: Vector<Element, N>.Index) -> Element {
-        _read { yield _elements[index.rawValue] }
-        _modify { yield &_elements[index.rawValue] }
+        _read {
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe _storage.pointer(at: slot).pointee
+        }
+        _modify {
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe &_storage.pointer(at: slot).pointee
+        }
     }
 }
 
@@ -82,7 +90,8 @@ extension Vector where Element: Copyable {
     /// - Returns: The element at the index.
     @inlinable
     public func element(at index: Index) -> Element {
-        unsafe _cachedPtr[index.rawValue]
+        let slot = Index_Primitives.Index<Element>(index.ordinal)
+        return unsafe _storage.pointer(at: slot).pointee
     }
 }
 
@@ -93,6 +102,7 @@ extension Vector.Inline where Element: Copyable {
     /// - Returns: The element at the index.
     @inlinable
     public func element(at index: Vector<Element, N>.Index) -> Element {
-        _elements[index.rawValue]
+        let slot = Index_Primitives.Index<Element>(index.ordinal)
+        return unsafe _storage.pointer(at: slot).pointee
     }
 }

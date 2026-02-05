@@ -35,70 +35,11 @@
 @safe
 public struct Vector<Element: ~Copyable, let N: Int>: ~Copyable {
 
-    // MARK: - Storage (nested to inherit Element's ~Copyable context)
+    // MARK: - Storage
 
-    /// Internal storage class using ManagedBuffer.
-    ///
-    /// Declared as a nested class inside `Vector` so that the `Element` generic
-    /// inherits the `~Copyable` suppression from the outer type.
+    /// Internal storage using Storage.Heap for heap storage with CoW.
     @usableFromInline
-    final class Storage: ManagedBuffer<Void, Element> {
-
-        /// Creates storage with capacity for N elements.
-        @usableFromInline
-        static func create() -> Storage {
-            let storage = Storage.create(minimumCapacity: N) { _ in () }
-            return unsafe unsafeDowncast(storage, to: Storage.self)
-        }
-
-        deinit {
-            guard N > 0 else { return }
-            _ = unsafe withUnsafeMutablePointerToElements { elements in
-                for i in 0..<N {
-                    unsafe (elements + i).deinitialize(count: 1)
-                }
-            }
-        }
-
-        /// Returns pointer to element storage.
-        @usableFromInline
-        var _elementsPointer: UnsafeMutablePointer<Element> {
-            unsafe withUnsafeMutablePointerToElements { unsafe $0 }
-        }
-
-        /// Initializes element at the given index.
-        @usableFromInline
-        func _initializeElement(at index: Int, to element: consuming Element) {
-            let ptr = unsafe withUnsafeMutablePointerToElements { unsafe $0 + index }
-            unsafe ptr.initialize(to: element)
-        }
-
-        /// Moves element from the given index.
-        @usableFromInline
-        func _moveElement(at index: Int) -> Element {
-            unsafe withUnsafeMutablePointerToElements { elements in
-                unsafe (elements + index).move()
-            }
-        }
-
-        /// Copies all elements to new storage (for CoW).
-        @usableFromInline
-        func _copyAllElements(to newStorage: Storage) where Element: Copyable {
-            _ = unsafe withUnsafeMutablePointerToElements { old in
-                unsafe newStorage.withUnsafeMutablePointerToElements { new in
-                    unsafe new.initialize(from: old, count: N)
-                }
-            }
-        }
-    }
-
-    // MARK: - Properties
-
-    @usableFromInline
-    var _storage: Storage
-
-    @usableFromInline
-    var _cachedPtr: UnsafeMutablePointer<Element>
+    internal var _storage: Storage<Element>.Heap
 }
 
 // MARK: - Conditional Conformances
@@ -112,7 +53,8 @@ extension Vector: Equatable where Element: Equatable & Copyable {
     @inlinable
     public static func == (lhs: borrowing Self, rhs: borrowing Self) -> Bool {
         for i in 0..<N {
-            if unsafe lhs._cachedPtr[i] != rhs._cachedPtr[i] {
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            if unsafe lhs._storage.pointer(at: slot).pointee != rhs._storage.pointer(at: slot).pointee {
                 return false
             }
         }
@@ -126,22 +68,9 @@ extension Vector: Hashable where Element: Hashable & Copyable {
     @inlinable
     public func hash(into hasher: inout Hasher) {
         for i in 0..<N {
-            unsafe hasher.combine(_cachedPtr[i])
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            hasher.combine(unsafe _storage.pointer(at: slot).pointee)
         }
-    }
-}
-
-// MARK: - Copy-on-Write
-
-extension Vector where Element: Copyable {
-    /// Ensures unique ownership of storage for mutation.
-    @usableFromInline
-    mutating func _makeUnique() {
-        guard !isKnownUniquelyReferenced(&_storage) else { return }
-        let newStorage = Storage.create()
-        _storage._copyAllElements(to: newStorage)
-        _storage = newStorage
-        unsafe (_cachedPtr = _storage._elementsPointer)
     }
 }
 
@@ -156,7 +85,8 @@ extension Vector where Element: ~Copyable {
     @inlinable
     public func forEach<E: Error>(_ body: (borrowing Element) throws(E) -> Void) rethrows {
         for i in 0..<N {
-            try unsafe body(_cachedPtr[i])
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            try unsafe body(_storage.pointer(at: slot).pointee)
         }
     }
 
@@ -168,7 +98,8 @@ extension Vector where Element: ~Copyable {
         at index: Index,
         _ body: (borrowing Element) throws(E) -> R
     ) rethrows -> R {
-        return try unsafe body(_cachedPtr[index.rawValue])
+        let slot = Index_Primitives.Index<Element>(index.ordinal)
+        return try unsafe body(_storage.pointer(at: slot).pointee)
     }
 
     // MARK: - Span Access
@@ -180,7 +111,9 @@ extension Vector where Element: ~Copyable {
         @_lifetime(borrow self)
         @inlinable
         borrowing get {
-            unsafe Span(_unsafeStart: _cachedPtr, count: N)
+            let ptr = unsafe UnsafePointer(_storage.pointer(at: .zero))
+            let span = unsafe Span(_unsafeStart: ptr, count: N)
+            return unsafe _overrideLifetime(span, borrowing: self)
         }
     }
 
@@ -191,7 +124,9 @@ extension Vector where Element: ~Copyable {
         @_lifetime(&self)
         @inlinable
         mutating get {
-            unsafe MutableSpan(_unsafeStart: _cachedPtr, count: N)
+            let ptr = unsafe _storage.pointer(at: .zero)
+            let span = unsafe MutableSpan(_unsafeStart: ptr, count: N)
+            return unsafe _overrideLifetime(span, mutating: &self)
         }
     }
 }
@@ -201,51 +136,71 @@ extension Vector where Element: ~Copyable {
 extension Vector where Element: Copyable {
     /// Mutable span with copy-on-write semantics.
     ///
-    /// This property overrides the unconstrained version to ensure CoW for Copyable elements.
+    /// This property ensures unique ownership before providing mutable access.
     public var mutableSpan: MutableSpan<Element> {
         @_lifetime(&self)
         @inlinable
         mutating get {
             _makeUnique()
-            return unsafe MutableSpan(_unsafeStart: _cachedPtr, count: N)
+            let ptr = unsafe _storage.pointer(at: .zero)
+            let span = unsafe MutableSpan(_unsafeStart: ptr, count: N)
+            return unsafe _overrideLifetime(span, mutating: &self)
         }
     }
 
     /// Creates a vector by consuming an inline array.
     @inlinable
     public init(_ elements: consuming InlineArray<N, Element>) {
-        self._storage = Storage.create()
-        unsafe (self._cachedPtr = _storage._elementsPointer)
+        let capacity = Index_Primitives.Index<Element>.Count(Cardinal(UInt(N)))
+        let storage = Storage<Element>.Heap.create(minimumCapacity: capacity)
         for i in 0..<N {
-            _storage._initializeElement(at: i, to: elements[i])
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            storage.initialize(to: elements[i], at: slot)
         }
+        storage.initialization = .linear(count: capacity)
+        self._storage = storage
     }
 
     /// Creates a vector with all elements set to value.
     @inlinable
     public init(repeating value: Element) {
-        self._storage = Storage.create()
-        unsafe (self._cachedPtr = _storage._elementsPointer)
+        let capacity = Index_Primitives.Index<Element>.Count(Cardinal(UInt(N)))
+        let storage = Storage<Element>.Heap.create(minimumCapacity: capacity)
         for i in 0..<N {
-            _storage._initializeElement(at: i, to: value)
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            storage.initialize(to: value, at: slot)
         }
+        storage.initialization = .linear(count: capacity)
+        self._storage = storage
     }
 
     /// The vector elements as an inline array.
     @inlinable
     public var elements: InlineArray<N, Element> {
         get {
-            var result = unsafe InlineArray<N, Element>(repeating: _cachedPtr[0])
+            let firstSlot: Index_Primitives.Index<Element> = .zero
+            var result = unsafe InlineArray<N, Element>(repeating: _storage.pointer(at: firstSlot).pointee)
             for i in 1..<N {
-                result[i] = unsafe _cachedPtr[i]
+                let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+                result[i] = unsafe _storage.pointer(at: slot).pointee
             }
             return result
         }
         set {
             _makeUnique()
             for i in 0..<N {
-                unsafe (_cachedPtr[i] = newValue[i])
+                let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+                unsafe (_storage.pointer(at: slot).pointee = newValue[i])
             }
         }
+    }
+
+    // MARK: - Copy-on-Write
+
+    /// Ensures unique ownership of storage for mutation.
+    @usableFromInline
+    mutating func _makeUnique() {
+        guard !isKnownUniquelyReferenced(&_storage) else { return }
+        _storage = _storage.copy()
     }
 }

@@ -6,7 +6,7 @@
 extension Vector where Element: ~Copyable {
     /// Fixed-size vector with inline storage.
     ///
-    /// Uses `InlineArray<N, Element>` for zero-allocation stack storage.
+    /// Uses `Storage<Element>.Inline<N>` for zero-allocation stack storage with optimal layout.
     /// Preferred for small dimensions (2, 3, 4) where heap allocation is unnecessary.
     ///
     /// ## Usage
@@ -18,33 +18,48 @@ extension Vector where Element: ~Copyable {
     ///
     /// ## ~Copyable Support
     ///
-    /// `Inline` is ~Copyable by default and conditionally Copyable when `Element: Copyable`.
-    /// Unlike heap-allocated `Vector`, this type can be conditionally Copyable because
-    /// InlineArray handles element lifetime automatically (no manual deinit required).
+    /// `Inline` is ~Copyable by default due to `Storage.Inline` using `@_rawLayout`.
+    /// Use `Equation.Protocol` and `Hash.Protocol` for equality/hashing on ~Copyable types.
+    ///
+    /// ## Memory Layout
+    ///
+    /// Storage uses `@_rawLayout(likeArrayOf: Element, count: N)` for optimal layout:
+    /// - `Vector<Double, 4>.Inline` = 32 bytes (not 256+ like old implementations)
+    /// - Elements are stored contiguously at their natural stride
     ///
     /// ## When to Use
     ///
     /// - **Use `Vector.Inline`** for small vectors (N ≤ ~16) where stack allocation is preferred
     /// - **Use `Vector`** for large vectors where heap allocation avoids stack overflow
     public struct Inline: ~Copyable {
-        /// Internal storage.
+        /// Internal storage using Storage.Inline with optimal layout.
         @usableFromInline
-        internal var _elements: InlineArray<N, Element>
+        internal var _storage: Storage<Element>.Inline<N>
+
+
+        // MARK: - Deinitialization
+
+        deinit {
+            // Use non-mutating deinitialize(range:) since Vector.Inline is always
+            // fully initialized with N elements in range [0, N).
+            let range: Swift.Range<Index_Primitives.Index<Element>> = .zero ..< Index_Primitives.Index<Element>(Ordinal(UInt(N)))
+            _storage.deinitialize(range: range)
+        }
     }
 }
 
 // MARK: - Conditional Conformances
 
-extension Vector.Inline: Copyable where Element: Copyable {}
 extension Vector.Inline: Sendable where Element: Sendable {}
 
-// MARK: - Equatable (manual implementation - InlineArray doesn't synthesize)
+// MARK: - Equation.Protocol (~Copyable-compatible equality)
 
-extension Vector.Inline: Equatable where Element: Equatable & Copyable {
+extension Vector.Inline: Equation.`Protocol` where Element: Equation.`Protocol` {
     @inlinable
-    public static func == (lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: borrowing Self, rhs: borrowing Self) -> Bool {
         for i in 0..<N {
-            if lhs._elements[i] != rhs._elements[i] {
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            if unsafe lhs._storage.pointer(at: slot).pointee != rhs._storage.pointer(at: slot).pointee {
                 return false
             }
         }
@@ -52,13 +67,14 @@ extension Vector.Inline: Equatable where Element: Equatable & Copyable {
     }
 }
 
-// MARK: - Hashable (manual implementation - InlineArray doesn't synthesize)
+// MARK: - Hash.Protocol (~Copyable-compatible hashing)
 
-extension Vector.Inline: Hashable where Element: Hashable & Copyable {
+extension Vector.Inline: Hash.`Protocol` where Element: Hash.`Protocol` {
     @inlinable
-    public func hash(into hasher: inout Hasher) {
+    public borrowing func hash(into hasher: inout Hasher) {
         for i in 0..<N {
-            hasher.combine(_elements[i])
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            unsafe _storage.pointer(at: slot).pointee.hash(into: &hasher)
         }
     }
 }
@@ -70,26 +86,12 @@ extension Vector.Inline where Element: ~Copyable {
     @inlinable
     public static var dimension: Int { N }
 
-    /// Creates a vector by consuming an inline array.
-    @inlinable
-    public init(_ elements: consuming InlineArray<N, Element>) {
-        self._elements = elements
-    }
-
-    /// Public wrapper for cross-module access.
-    ///
-    /// Uses `_read`/`_modify` accessors for proper borrowing semantics with ~Copyable elements.
-    @inlinable
-    public var elements: InlineArray<N, Element> {
-        _read { yield _elements }
-        _modify { yield &_elements }
-    }
-
     /// Borrowing iteration.
     @inlinable
     public func forEach<E: Error>(_ body: (borrowing Element) throws(E) -> Void) rethrows {
         for i in 0..<N {
-            try body(_elements[i])
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            try unsafe body(_storage.pointer(at: slot).pointee)
         }
     }
 
@@ -101,27 +103,8 @@ extension Vector.Inline where Element: ~Copyable {
         at index: Vector<Element, N>.Index,
         _ body: (borrowing Element) throws(E) -> R
     ) rethrows -> R {
-        return try body(_elements[index.rawValue])
-    }
-
-    // MARK: - Pointer Access (Internal)
-
-    /// Returns the base pointer for element storage.
-    @usableFromInline
-    func _basePointer() -> UnsafePointer<Element> {
-        unsafe Swift.withUnsafePointer(to: _elements) { storagePtr in
-            let basePtr = unsafe UnsafeRawPointer(storagePtr)
-            return unsafe basePtr.assumingMemoryBound(to: Element.self)
-        }
-    }
-
-    /// Returns the mutable base pointer for element storage.
-    @usableFromInline
-    mutating func _mutableBasePointer() -> UnsafeMutablePointer<Element> {
-        unsafe Swift.withUnsafeMutablePointer(to: &_elements) { storagePtr in
-            let basePtr = UnsafeMutableRawPointer(storagePtr)
-            return unsafe basePtr.assumingMemoryBound(to: Element.self)
-        }
+        let slot = Index_Primitives.Index<Element>(index.ordinal)
+        return try unsafe body(_storage.pointer(at: slot).pointee)
     }
 
     // MARK: - Span Access
@@ -133,7 +116,8 @@ extension Vector.Inline where Element: ~Copyable {
     @inlinable
     public var span: Span<Element> {
         _read {
-            yield unsafe Span(_unsafeStart: _basePointer(), count: N)
+            let ptr = unsafe _storage.pointer(at: .zero)
+            yield unsafe Span(_unsafeStart: ptr, count: N)
         }
     }
 
@@ -144,11 +128,11 @@ extension Vector.Inline where Element: ~Copyable {
     @inlinable
     public var mutableSpan: MutableSpan<Element> {
         _read {
-            let ptr = unsafe UnsafeMutablePointer(mutating: _basePointer())
+            let ptr = unsafe UnsafeMutablePointer(mutating: _storage.pointer(at: .zero))
             yield unsafe MutableSpan(_unsafeStart: ptr, count: N)
         }
         _modify {
-            var s = unsafe MutableSpan(_unsafeStart: _mutableBasePointer(), count: N)
+            var s = unsafe MutableSpan(_unsafeStart: _storage.pointer(at: .zero), count: N)
             yield &s
         }
     }
@@ -157,9 +141,45 @@ extension Vector.Inline where Element: ~Copyable {
 // MARK: - Copyable Only (Element: Copyable)
 
 extension Vector.Inline where Element: Copyable {
+    /// Creates a vector from an inline array.
+    @inlinable
+    public init(_ elements: InlineArray<N, Element>) {
+        self._storage = Storage<Element>.Inline<N>()
+        for i in 0..<N {
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            _storage.initialize(to: elements[i], at: slot)
+        }
+        _storage.initialization = .linear(count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N))))
+    }
+
     /// Creates a vector with all elements set to value.
     @inlinable
     public init(repeating value: Element) {
-        self._elements = InlineArray(repeating: value)
+        self._storage = Storage<Element>.Inline<N>()
+        for i in 0..<N {
+            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+            _storage.initialize(to: value, at: slot)
+        }
+        _storage.initialization = .linear(count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N))))
+    }
+
+    /// The vector elements as an inline array.
+    @inlinable
+    public var elements: InlineArray<N, Element> {
+        get {
+            let firstSlot: Index_Primitives.Index<Element> = .zero
+            var result = unsafe InlineArray<N, Element>(repeating: _storage.pointer(at: firstSlot).pointee)
+            for i in 1..<N {
+                let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+                result[i] = unsafe _storage.pointer(at: slot).pointee
+            }
+            return result
+        }
+        set {
+            for i in 0..<N {
+                let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
+                unsafe (_storage.pointer(at: slot).pointee = newValue[i])
+            }
+        }
     }
 }

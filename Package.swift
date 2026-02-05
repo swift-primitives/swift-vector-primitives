@@ -18,27 +18,21 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../swift-affine-primitives"),
-        .package(path: "../swift-algebra-primitives"),
-        .package(path: "../swift-bit-primitives"),
-        .package(path: "../swift-cyclic-primitives"),
-        .package(path: "../swift-dimension-primitives"),
-        .package(path: "../swift-finite-primitives"),
+        .package(path: "../swift-buffer-primitives"),
+        .package(path: "../swift-algebra-modular-primitives"),
         .package(path: "../swift-index-primitives"),
-        .package(path: "../swift-ordinal-primitives"),
+        .package(path: "../swift-equation-primitives"),
+        .package(path: "../swift-hash-primitives"),
     ],
     targets: [
         .target(
             name: "Vector Primitives",
             dependencies: [
-                .product(name: "Affine Primitives", package: "swift-affine-primitives"),
-                .product(name: "Algebra Primitives", package: "swift-algebra-primitives"),
-                .product(name: "Bit Primitives", package: "swift-bit-primitives"),
-                .product(name: "Cyclic Primitives", package: "swift-cyclic-primitives"),
-                .product(name: "Dimension Primitives", package: "swift-dimension-primitives"),
-                .product(name: "Finite Primitives", package: "swift-finite-primitives"),
+                .product(name: "Buffer Primitives", package: "swift-buffer-primitives"),
+                .product(name: "Algebra Modular Primitives", package: "swift-algebra-modular-primitives"),
                 .product(name: "Index Primitives", package: "swift-index-primitives"),
-                .product(name: "Ordinal Primitives", package: "swift-ordinal-primitives"),
+                .product(name: "Equation Primitives", package: "swift-equation-primitives"),
+                .product(name: "Hash Primitives", package: "swift-hash-primitives"),
             ]
         ),
         .testTarget(

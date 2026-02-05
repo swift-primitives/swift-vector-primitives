@@ -1,9 +1,8 @@
 // exports.swift
 // Re-export dependencies for consumers.
 
-@_exported import Affine_Primitives
-@_exported import Bit_Primitives
-@_exported import Cyclic_Primitives
-@_exported import Finite_Primitives
+@_exported import Buffer_Primitives
+@_exported import Algebra_Modular_Primitives
 @_exported import Index_Primitives
-@_exported import Ordinal_Primitives
+@_exported import Equation_Primitives
+@_exported import Hash_Primitives
