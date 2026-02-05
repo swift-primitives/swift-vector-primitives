@@ -4,6 +4,7 @@
 import Testing
 
 @testable import Vector_Primitives
+import Vector_Primitives_Test_Support
 
 // MARK: - Vector.Inline Unit Tests
 
@@ -98,8 +99,8 @@ struct VectorInlineUnitTests {
         let a = IntVec3([1, 2, 3])
         let b = IntVec3([1, 2, 3])
         let c = IntVec3([1, 2, 4])
-        #expect(a == b)
-        #expect(a != c)
+        #expect((a == b) == true)
+        #expect((a != c) == true)
     }
 
     @Test("hashable")

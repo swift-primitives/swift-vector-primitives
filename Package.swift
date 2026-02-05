@@ -15,7 +15,11 @@ let package = Package(
         .library(
             name: "Vector Primitives",
             targets: ["Vector Primitives"]
-        )
+        ),
+        .library(
+            name: "Vector Primitives Test Support",
+            targets: ["Vector Primitives Test Support"]
+        ),
     ],
     dependencies: [
         .package(path: "../swift-buffer-primitives"),
@@ -35,9 +39,21 @@ let package = Package(
                 .product(name: "Hash Primitives", package: "swift-hash-primitives"),
             ]
         ),
+        .target(
+            name: "Vector Primitives Test Support",
+            dependencies: [
+                "Vector Primitives",
+                .product(name: "Algebra Modular Primitives Test Support", package: "swift-algebra-modular-primitives"),
+                .product(name: "Index Primitives Test Support", package: "swift-index-primitives"),
+            ],
+            path: "Tests/Support"
+        ),
         .testTarget(
             name: "Vector Primitives Tests",
-            dependencies: ["Vector Primitives"]
+            dependencies: [
+                "Vector Primitives",
+                "Vector Primitives Test Support",
+            ]
         )
     ],
     swiftLanguageModes: [.v6]

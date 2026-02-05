@@ -4,6 +4,7 @@
 import Testing
 
 @testable import Vector_Primitives
+import Vector_Primitives_Test_Support
 
 // MARK: - Vector Unit Tests
 

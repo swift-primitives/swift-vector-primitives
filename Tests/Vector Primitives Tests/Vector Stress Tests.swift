@@ -3,8 +3,8 @@
 
 import Testing
 import Synchronization
-
 @testable import Vector_Primitives
+import Vector_Primitives_Test_Support
 
 // MARK: - Move-Only Element Tracking
 
@@ -292,10 +292,17 @@ struct VectorStressTests {
         var v = Vector<LargeStruct, 10>(repeating: LargeStruct())
 
         for i in try! (0..<10).map(Vector<LargeStruct, 10>.Index.init) {
-            let n = i.rawValue
-            v[i] = LargeStruct(a: Int64(n), b: Int64(n*2), c: Int64(n*3),
-                              d: Int64(n*4), e: Int64(n*5), f: Int64(n*6),
-                              g: Int64(n*7), h: Int64(n*8))
+            let n = i.rawValue.rawValue
+            v[i] = LargeStruct(
+                a: Int64(n),
+                b: Int64(n*2),
+                c: Int64(n*3),
+                d: Int64(n*4),
+                e: Int64(n*5),
+                f: Int64(n*6),
+                g: Int64(n*7),
+                h: Int64(n*8)
+            )
         }
 
         #expect(v[5].a == 5)
@@ -329,11 +336,13 @@ struct VectorInlineStressTests {
         let tracker = DeinitTracker()
 
         do {
-            let v = Vector<TrackedValue, 3>.Inline([
-                TrackedValue(1, tracker: tracker),
-                TrackedValue(2, tracker: tracker),
-                TrackedValue(3, tracker: tracker)
-            ])
+            let v = Vector<TrackedValue, 3>.Inline(
+                [
+                    TrackedValue(1, tracker: tracker),
+                    TrackedValue(2, tracker: tracker),
+                    TrackedValue(3, tracker: tracker)
+                ]
+            )
             #expect(tracker.count == 0)
             _ = v[0].value // Access to prevent unused warning
         }
@@ -346,11 +355,13 @@ struct VectorInlineStressTests {
     func moveOnlyForEachBorrowing() {
         let tracker = DeinitTracker()
 
-        let v = Vector<TrackedValue, 3>.Inline([
-            TrackedValue(10, tracker: tracker),
-            TrackedValue(20, tracker: tracker),
-            TrackedValue(30, tracker: tracker)
-        ])
+        let v = Vector<TrackedValue, 3>.Inline(
+            [
+                TrackedValue(10, tracker: tracker),
+                TrackedValue(20, tracker: tracker),
+                TrackedValue(30, tracker: tracker)
+            ]
+        )
 
         var sum = 0
         v.forEach { element in

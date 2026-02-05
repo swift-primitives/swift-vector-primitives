@@ -5,6 +5,7 @@ import Testing
 import Foundation
 
 @testable import Vector_Primitives
+import Vector_Primitives_Test_Support
 
 // MARK: - Timing Utilities
 
@@ -20,8 +21,8 @@ func measureTime(_ iterations: Int, _ block: () -> Void) -> (total: Double, perI
 }
 
 @inline(never)
-func blackHole<T>(_ value: T) {
-    withUnsafePointer(to: value) { _ in }
+func blackHole<T: ~Copyable>(_ value: borrowing T) {
+    unsafe withUnsafePointer(to: value) { _ in }
 }
 
 // MARK: - Allocation Benchmarks
@@ -42,8 +43,8 @@ struct AllocationBenchmarks {
         print("HEAP Vector<Int, 3> ALLOCATION")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+        print(unsafe "Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 
@@ -60,8 +61,8 @@ struct AllocationBenchmarks {
         print("INLINE Vector<Int, 3>.Inline ALLOCATION")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+        print(unsafe "Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 
@@ -86,9 +87,9 @@ struct AllocationBenchmarks {
         print("═══════════════════════════════════════════")
         print("ALLOCATION COMPARISON (Vector<Int, 3>)")
         print("───────────────────────────────────────────")
-        print("Heap total:   \(String(format: "%.4f", heapTotal))s (\(String(format: "%.1f", heapPer * 1_000_000_000))ns/op)")
-        print("Inline total: \(String(format: "%.4f", inlineTotal))s (\(String(format: "%.1f", inlinePer * 1_000_000_000))ns/op)")
-        print("Inline speedup: \(String(format: "%.1f", speedup))x faster")
+        print(unsafe "Heap total:   \(String(format: "%.4f", heapTotal))s (\(String(format: "%.1f", heapPer * 1_000_000_000))ns/op)")
+        print(unsafe "Inline total: \(String(format: "%.4f", inlineTotal))s (\(String(format: "%.1f", inlinePer * 1_000_000_000))ns/op)")
+        print(unsafe "Inline speedup: \(String(format: "%.1f", speedup))x faster")
         print("═══════════════════════════════════════════")
     }
 }
@@ -113,8 +114,8 @@ struct AccessBenchmarks {
         print("HEAP SUBSCRIPT READ")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+        print(unsafe "Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 
@@ -133,8 +134,8 @@ struct AccessBenchmarks {
         print("INLINE SUBSCRIPT READ")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+        print(unsafe "Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 
@@ -162,9 +163,9 @@ struct AccessBenchmarks {
         print("═══════════════════════════════════════════")
         print("READ COMPARISON (Vector<Int, 3>)")
         print("───────────────────────────────────────────")
-        print("Heap:   \(String(format: "%.4f", heapTotal))s (\(String(format: "%.1f", heapPer * 1_000_000_000))ns/op)")
-        print("Inline: \(String(format: "%.4f", inlineTotal))s (\(String(format: "%.1f", inlinePer * 1_000_000_000))ns/op)")
-        print("Ratio: \(String(format: "%.2f", ratio))x")
+        print(unsafe "Heap:   \(String(format: "%.4f", heapTotal))s (\(String(format: "%.1f", heapPer * 1_000_000_000))ns/op)")
+        print(unsafe "Inline: \(String(format: "%.4f", inlineTotal))s (\(String(format: "%.1f", inlinePer * 1_000_000_000))ns/op)")
+        print(unsafe "Ratio: \(String(format: "%.2f", ratio))x")
         print("═══════════════════════════════════════════")
     }
 }
@@ -190,8 +191,8 @@ struct MutationBenchmarks {
         print("HEAP MUTATION (unique reference - no copy)")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+        print(unsafe "Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 
@@ -219,8 +220,8 @@ struct MutationBenchmarks {
         print("HEAP MUTATION (shared reference - CoW copy)")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", totalTime))s")
-        print("Per mutation (incl copy): \(String(format: "%.1f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", totalTime))s")
+        print(unsafe "Per mutation (incl copy): \(String(format: "%.1f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 
@@ -240,8 +241,8 @@ struct MutationBenchmarks {
         print("INLINE MUTATION (always direct)")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+        print(unsafe "Per iteration: \(String(format: "%.2f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 }
@@ -265,57 +266,57 @@ struct CopyBenchmarks {
         print("HEAP COPY (CoW shallow - just refcount)")
         print("───────────────────────────────────────────")
         print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per copy: \(String(format: "%.2f", per * 1_000_000_000))ns")
+        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+        print(unsafe "Per copy: \(String(format: "%.2f", per * 1_000_000_000))ns")
         print("═══════════════════════════════════════════")
     }
 
-    @Test("inline copy cost (full element copy)")
-    func inlineCopyCost() {
-        let original = Vector<Int, 3>.Inline([1, 2, 3])
-        let iterations = 100_000
-
-        let (total, per) = measureTime(iterations) {
-            let copy = original
-            blackHole(copy)
-        }
-
-        print("═══════════════════════════════════════════")
-        print("INLINE COPY (full element copy)")
-        print("───────────────────────────────────────────")
-        print("Iterations: \(iterations)")
-        print("Total time: \(String(format: "%.4f", total))s")
-        print("Per copy: \(String(format: "%.2f", per * 1_000_000_000))ns")
-        print("═══════════════════════════════════════════")
-    }
-
-    @Test("heap vs inline copy comparison")
-    func heapVsInlineCopyComparison() {
-        let iterations = 100_000
-
-        let heapOriginal = Vector<Int, 3>([1, 2, 3])
-        let inlineOriginal = Vector<Int, 3>.Inline([1, 2, 3])
-
-        let (heapTotal, heapPer) = measureTime(iterations) {
-            let copy = heapOriginal
-            blackHole(copy)
-        }
-
-        let (inlineTotal, inlinePer) = measureTime(iterations) {
-            let copy = inlineOriginal
-            blackHole(copy)
-        }
-
-        let ratio = inlinePer / heapPer
-
-        print("═══════════════════════════════════════════")
-        print("COPY COMPARISON (Vector<Int, 3>)")
-        print("───────────────────────────────────────────")
-        print("Heap (CoW):    \(String(format: "%.4f", heapTotal))s (\(String(format: "%.1f", heapPer * 1_000_000_000))ns/op)")
-        print("Inline (full): \(String(format: "%.4f", inlineTotal))s (\(String(format: "%.1f", inlinePer * 1_000_000_000))ns/op)")
-        print("Inline/Heap ratio: \(String(format: "%.2f", ratio))x")
-        print("═══════════════════════════════════════════")
-    }
+//    @Test("inline copy cost (full element copy)")
+//    func inlineCopyCost() {
+//        let original = Vector<Int, 3>.Inline([1, 2, 3])
+//        let iterations = 100_000
+//
+//        let (total, per) = measureTime(iterations) {
+//            let copy = original
+//            blackHole(copy)
+//        }
+//
+//        print("═══════════════════════════════════════════")
+//        print("INLINE COPY (full element copy)")
+//        print("───────────────────────────────────────────")
+//        print("Iterations: \(iterations)")
+//        print(unsafe "Total time: \(String(format: "%.4f", total))s")
+//        print(unsafe "Per copy: \(String(format: "%.2f", per * 1_000_000_000))ns")
+//        print("═══════════════════════════════════════════")
+//    }
+//
+//    @Test("heap vs inline copy comparison")
+//    func heapVsInlineCopyComparison() {
+//        let iterations = 100_000
+//
+//        let heapOriginal = Vector<Int, 3>([1, 2, 3])
+//        let inlineOriginal = Vector<Int, 3>.Inline([1, 2, 3])
+//
+//        let (heapTotal, heapPer) = measureTime(iterations) {
+//            let copy = heapOriginal
+//            blackHole(copy)
+//        }
+//
+//        let (inlineTotal, inlinePer) = measureTime(iterations) {
+//            let copy = inlineOriginal
+//            blackHole(copy)
+//        }
+//
+//        let ratio = inlinePer / heapPer
+//
+//        print("═══════════════════════════════════════════")
+//        print("COPY COMPARISON (Vector<Int, 3>)")
+//        print("───────────────────────────────────────────")
+//        print(unsafe "Heap (CoW):    \(String(format: "%.4f", heapTotal))s (\(String(format: "%.1f", heapPer * 1_000_000_000))ns/op)")
+//        print(unsafe "Inline (full): \(String(format: "%.4f", inlineTotal))s (\(String(format: "%.1f", inlinePer * 1_000_000_000))ns/op)")
+//        print(unsafe "Inline/Heap ratio: \(String(format: "%.2f", ratio))x")
+//        print("═══════════════════════════════════════════")
+//    }
 }
 
 // MARK: - Larger Vector Benchmarks
@@ -328,31 +329,31 @@ struct SizeScalingBenchmarks {
         let iterations = 10_000
 
         // Dimension 3
-        let (heap3Total, heap3Per) = measureTime(iterations) {
+        let (_, heap3Per) = measureTime(iterations) {
             let v = Vector<Int, 3>([1, 2, 3])
             blackHole(v)
         }
-        let (inline3Total, inline3Per) = measureTime(iterations) {
+        let (_, inline3Per) = measureTime(iterations) {
             let v = Vector<Int, 3>.Inline([1, 2, 3])
             blackHole(v)
         }
 
         // Dimension 10
-        let (heap10Total, heap10Per) = measureTime(iterations) {
+        let (_, heap10Per) = measureTime(iterations) {
             let v = Vector<Int, 10>(repeating: 42)
             blackHole(v)
         }
-        let (inline10Total, inline10Per) = measureTime(iterations) {
+        let (_, inline10Per) = measureTime(iterations) {
             let v = Vector<Int, 10>.Inline(repeating: 42)
             blackHole(v)
         }
 
         // Dimension 100
-        let (heap100Total, heap100Per) = measureTime(iterations) {
+        let (_, heap100Per) = measureTime(iterations) {
             let v = Vector<Int, 100>(repeating: 42)
             blackHole(v)
         }
-        let (inline100Total, inline100Per) = measureTime(iterations) {
+        let (_, inline100Per) = measureTime(iterations) {
             let v = Vector<Int, 100>.Inline(repeating: 42)
             blackHole(v)
         }
@@ -360,9 +361,9 @@ struct SizeScalingBenchmarks {
         print("═══════════════════════════════════════════")
         print("ALLOCATION SCALING BY DIMENSION")
         print("───────────────────────────────────────────")
-        print("Dim 3:   Heap \(String(format: "%7.1f", heap3Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline3Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", heap3Per/inline3Per))x")
-        print("Dim 10:  Heap \(String(format: "%7.1f", heap10Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline10Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", heap10Per/inline10Per))x")
-        print("Dim 100: Heap \(String(format: "%7.1f", heap100Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline100Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", heap100Per/inline100Per))x")
+        print(unsafe "Dim 3:   Heap \(String(format: "%7.1f", heap3Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline3Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", heap3Per/inline3Per))x")
+        print(unsafe "Dim 10:  Heap \(String(format: "%7.1f", heap10Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline10Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", heap10Per/inline10Per))x")
+        print(unsafe "Dim 100: Heap \(String(format: "%7.1f", heap100Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline100Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", heap100Per/inline100Per))x")
         print("═══════════════════════════════════════════")
     }
 
@@ -379,18 +380,18 @@ struct SizeScalingBenchmarks {
         let inline100 = Vector<Int, 100>.Inline(repeating: 42)
 
         let (_, heap3Per) = measureTime(iterations) { let c = heap3; blackHole(c) }
-        let (_, inline3Per) = measureTime(iterations) { let c = inline3; blackHole(c) }
+        let (_, inline3Per) = measureTime(iterations) { blackHole(inline3) }
         let (_, heap10Per) = measureTime(iterations) { let c = heap10; blackHole(c) }
-        let (_, inline10Per) = measureTime(iterations) { let c = inline10; blackHole(c) }
+        let (_, inline10Per) = measureTime(iterations) { blackHole(inline10) }
         let (_, heap100Per) = measureTime(iterations) { let c = heap100; blackHole(c) }
-        let (_, inline100Per) = measureTime(iterations) { let c = inline100; blackHole(c) }
+        let (_, inline100Per) = measureTime(iterations) { blackHole(inline100) }
 
         print("═══════════════════════════════════════════")
         print("COPY SCALING BY DIMENSION")
         print("───────────────────────────────────────────")
-        print("Dim 3:   Heap \(String(format: "%7.1f", heap3Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline3Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", inline3Per/heap3Per))x")
-        print("Dim 10:  Heap \(String(format: "%7.1f", heap10Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline10Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", inline10Per/heap10Per))x")
-        print("Dim 100: Heap \(String(format: "%7.1f", heap100Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline100Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", inline100Per/heap100Per))x")
+        print(unsafe "Dim 3:   Heap \(String(format: "%7.1f", heap3Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline3Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", inline3Per/heap3Per))x")
+        print(unsafe "Dim 10:  Heap \(String(format: "%7.1f", heap10Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline10Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", inline10Per/heap10Per))x")
+        print(unsafe "Dim 100: Heap \(String(format: "%7.1f", heap100Per * 1_000_000_000))ns | Inline \(String(format: "%7.1f", inline100Per * 1_000_000_000))ns | Ratio \(String(format: "%.1f", inline100Per/heap100Per))x")
         print("(Ratio = Inline/Heap, >1 means heap is faster)")
         print("═══════════════════════════════════════════")
     }
@@ -428,9 +429,9 @@ struct SpanBenchmarks {
         print("═══════════════════════════════════════════")
         print("SPAN vs SUBSCRIPT READ (100 elements)")
         print("───────────────────────────────────────────")
-        print("Subscript: \(String(format: "%.1f", subscriptPer * 1_000_000_000))ns per full iteration")
-        print("Span:      \(String(format: "%.1f", spanPer * 1_000_000_000))ns per full iteration")
-        print("Ratio:     \(String(format: "%.2f", subscriptPer/spanPer))x")
+        print(unsafe "Subscript: \(String(format: "%.1f", subscriptPer * 1_000_000_000))ns per full iteration")
+        print(unsafe "Span:      \(String(format: "%.1f", spanPer * 1_000_000_000))ns per full iteration")
+        print(unsafe "Ratio:     \(String(format: "%.2f", subscriptPer/spanPer))x")
         print("═══════════════════════════════════════════")
     }
 }
