@@ -43,10 +43,6 @@ extension Vector where Element: ~Copyable {
         package init(_buffer: consuming Buffer<Element>.Linear.Inline<N>) {
             self._buffer = _buffer
         }
-
-        deinit {
-            print("Vector.Inline deinit called")
-        }
     }
 }
 
