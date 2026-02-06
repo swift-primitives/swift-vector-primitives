@@ -13,13 +13,13 @@ extension Vector: Memory.Contiguous.`Protocol` {
         @_lifetime(borrow self)
         @inlinable
         borrowing get {
-            self._storage.span
+            _buffer.span
         }
     }
-    
+
     /// Unsafe read access for C interop with unannotated APIs.
     ///
-    /// Provides raw pointer access to all `N` elements for C functi    ons
+    /// Provides raw pointer access to all `N` elements for C functions
     /// that lack lifetime annotations. For annotated C APIs, prefer ``span``.
     ///
     /// - Parameter body: A closure that receives the buffer pointer.
@@ -30,7 +30,7 @@ extension Vector: Memory.Contiguous.`Protocol` {
     public func withUnsafeBufferPointer<R, E: Swift.Error>(
         _ body: (UnsafeBufferPointer<Element>) throws(E) -> R
     ) throws(E) -> R {
-        unsafe try self._storage.withUnsafeBufferPointer(body)
+        try _buffer.withUnsafeBufferPointer(body)
     }
 }
 
@@ -42,9 +42,12 @@ extension Vector where Element: ~Copyable {
         @_lifetime(&self)
         @inlinable
         mutating get {
-            let ptr = unsafe _storage.pointer(at: .zero)
-            let span = unsafe MutableSpan(_unsafeStart: ptr, count: N)
-            return unsafe _overrideLifetime(span, mutating: &self)
+            _buffer.mutableSpan
+        }
+        @_lifetime(&self)
+        @inlinable
+        _modify {
+            yield &_buffer.mutableSpan
         }
     }
 }

@@ -11,11 +11,11 @@ extension Vector.Inline where Element: ~Copyable {
     public subscript(index: Vector<Element, N>.Index) -> Element {
         _read {
             let slot = Index_Primitives.Index<Element>(index.ordinal)
-            yield unsafe _storage.pointer(at: slot).pointee
+            yield _buffer[slot]
         }
         _modify {
             let slot = Index_Primitives.Index<Element>(index.ordinal)
-            yield unsafe &_storage.pointer(at: slot).pointee
+            yield &_buffer[slot]
         }
     }
 }
@@ -30,6 +30,6 @@ extension Vector.Inline where Element: Copyable {
     @inlinable
     public func element(at index: Vector<Element, N>.Index) -> Element {
         let slot = Index_Primitives.Index<Element>(index.ordinal)
-        return unsafe _storage.pointer(at: slot).pointee
+        return _buffer[slot]
     }
 }

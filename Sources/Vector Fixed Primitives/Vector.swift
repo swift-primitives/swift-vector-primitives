@@ -8,7 +8,7 @@ extension Vector: Equatable where Element: Equatable & Copyable {
     public static func == (lhs: borrowing Self, rhs: borrowing Self) -> Bool {
         for i in 0..<N {
             let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            if unsafe lhs._storage.pointer(at: slot).pointee != rhs._storage.pointer(at: slot).pointee {
+            if lhs._buffer[slot] != rhs._buffer[slot] {
                 return false
             }
         }
@@ -23,7 +23,7 @@ extension Vector: Hashable where Element: Hashable & Copyable {
     public func hash(into hasher: inout Hasher) {
         for i in 0..<N {
             let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            hasher.combine(unsafe _storage.pointer(at: slot).pointee)
+            hasher.combine(_buffer[slot])
         }
     }
 }

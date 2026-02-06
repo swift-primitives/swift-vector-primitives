@@ -7,29 +7,21 @@ extension Vector.Inline where Element: Copyable {
     /// Creates a vector from an inline array.
     @inlinable
     public init(_ elements: InlineArray<N, Element>) {
-        var storage = Storage<Element>.Inline<N>()
+        var buffer = Buffer<Element>.Linear.Inline<N>()
         for i in 0..<N {
-            storage.initialize(
-                to: elements[i],
-                at: Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            )
+            _ = buffer.append(elements[i])
         }
-        storage.initialization = .linear(
-            count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N)))
-        )
-        self.init(_storage: storage)
+        self.init(_buffer: buffer)
     }
 
     /// Creates a vector with all elements set to value.
     @inlinable
     public init(repeating value: Element) {
-        var storage = Storage<Element>.Inline<N>()
-        for i in 0..<N {
-            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            storage.initialize(to: value, at: slot)
+        var buffer = Buffer<Element>.Linear.Inline<N>()
+        for _ in 0..<N {
+            _ = buffer.append(value)
         }
-        storage.initialization = .linear(count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N))))
-        self.init(_storage: storage)
+        self.init(_buffer: buffer)
     }
 
     /// The vector elements as an inline array.
@@ -37,17 +29,17 @@ extension Vector.Inline where Element: Copyable {
     public var elements: InlineArray<N, Element> {
         get {
             let firstSlot: Index_Primitives.Index<Element> = .zero
-            var result = unsafe InlineArray<N, Element>(repeating: _storage.pointer(at: firstSlot).pointee)
+            var result = InlineArray<N, Element>(repeating: _buffer[firstSlot])
             for i in 1..<N {
                 let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-                result[i] = unsafe _storage.pointer(at: slot).pointee
+                result[i] = _buffer[slot]
             }
             return result
         }
         set {
             for i in 0..<N {
                 let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-                unsafe (_storage.pointer(at: slot).pointee = newValue[i])
+                _buffer[slot] = newValue[i]
             }
         }
     }

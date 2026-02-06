@@ -6,7 +6,7 @@
 extension Vector where Element: ~Copyable {
     /// Fixed-size vector with inline storage.
     ///
-    /// Uses `Storage<Element>.Inline<N>` for zero-allocation stack storage with optimal layout.
+    /// Uses `Buffer<Element>.Linear.Inline<N>` for zero-allocation stack storage with optimal layout.
     /// Preferred for small dimensions (2, 3, 4) where heap allocation is unnecessary.
     ///
     /// ## Usage
@@ -29,19 +29,19 @@ extension Vector where Element: ~Copyable {
     ///
     /// ## When to Use
     ///
-    /// - **Use `Vector.Inline`** for small vectors (N ≤ ~16) where stack allocation is preferred
+    /// - **Use `Vector.Inline`** for small vectors (N <= ~16) where stack allocation is preferred
     /// - **Use `Vector`** for large vectors where heap allocation avoids stack overflow
     public struct Inline: ~Copyable {
-        /// Internal storage using Storage.Inline with optimal layout.
+        /// Internal storage using Buffer.Linear.Inline with optimal layout.
         @usableFromInline
-        package var _storage: Storage<Element>.Inline<N>
+        package var _buffer: Buffer<Element>.Linear.Inline<N>
 
         // MARK: - Internal Initializer
 
         /// Internal initializer for use by extension modules.
         @usableFromInline
-        package init(_storage: consuming Storage<Element>.Inline<N>) {
-            self._storage = _storage
+        package init(_buffer: consuming Buffer<Element>.Linear.Inline<N>) {
+            self._buffer = _buffer
         }
 
         deinit {
@@ -61,7 +61,7 @@ extension Vector.Inline: Equation.`Protocol` where Element: Equation.`Protocol` 
     public static func == (lhs: borrowing Self, rhs: borrowing Self) -> Bool {
         for i in 0..<N {
             let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            if unsafe lhs._storage.pointer(at: slot).pointee != rhs._storage.pointer(at: slot).pointee {
+            if lhs._buffer[slot] != rhs._buffer[slot] {
                 return false
             }
         }
@@ -76,7 +76,7 @@ extension Vector.Inline: Hash.`Protocol` where Element: Hash.`Protocol` {
     public borrowing func hash(into hasher: inout Hasher) {
         for i in 0..<N {
             let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            unsafe _storage.pointer(at: slot).pointee.hash(into: &hasher)
+            _buffer[slot].hash(into: &hasher)
         }
     }
 }

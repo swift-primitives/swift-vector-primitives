@@ -40,16 +40,16 @@ public struct Vector<
 
     // MARK: - Storage
 
-    /// Internal storage using Storage.Heap for heap storage with CoW.
+    /// Internal storage using Buffer.Linear.Bounded with CoW.
     @usableFromInline
-    package var _storage: Storage<Element>.Heap
+    package var _buffer: Buffer<Element>.Linear.Bounded
 
     // MARK: - Internal Initializer
 
     /// Internal initializer for use by extension modules.
     @usableFromInline
-    package init(_storage: consuming Storage<Element>.Heap) {
-        self._storage = _storage
+    package init(_buffer: consuming Buffer<Element>.Linear.Bounded) {
+        self._buffer = _buffer
     }
 }
 

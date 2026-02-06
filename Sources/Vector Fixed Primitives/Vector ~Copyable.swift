@@ -1,15 +1,13 @@
 // Vector ~Copyable.swift
 // Extensions for Vector that work with ~Copyable elements.
 
-import Memory_Primitives
-
 // MARK: - Unconstrained API (Element: ~Copyable)
 
 extension Vector where Element: ~Copyable {
     /// The fixed dimension.
     @inlinable
     public static var dimension: Int { N }
-    
+
     /// Borrowing iteration.
     @inlinable
     public func forEach<E: Error>(
@@ -19,10 +17,10 @@ extension Vector where Element: ~Copyable {
     ) throws(E) {
         for i in 0..<N {
             let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            try unsafe body(_storage.pointer(at: slot).pointee)
+            try body(_buffer[slot])
         }
     }
-    
+
     /// Borrowing access at index.
     ///
     /// - Parameter index: The bounded index of the element to access.
@@ -32,7 +30,7 @@ extension Vector where Element: ~Copyable {
         _ body: (borrowing Element) throws(E) -> R
     ) throws(E) -> R {
         let slot = Index_Primitives.Index<Element>(index.ordinal)
-        return try unsafe body(_storage.pointer(at: slot).pointee)
+        return try body(_buffer[slot])
     }
 }
 
@@ -46,11 +44,11 @@ extension Vector where Element: ~Copyable {
     public subscript(index: Vector.Index) -> Element {
         _read {
             let slot = Index_Primitives.Index<Element>(index.ordinal)
-            yield unsafe _storage.pointer(at: slot).pointee
+            yield _buffer[slot]
         }
         _modify {
             let slot = Index_Primitives.Index<Element>(index.ordinal)
-            yield unsafe &_storage.pointer(at: slot).pointee
+            yield &_buffer[slot]
         }
     }
 }

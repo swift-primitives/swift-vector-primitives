@@ -7,14 +7,17 @@ extension Vector where Element: Copyable {
     /// Mutable span with copy-on-write semantics.
     ///
     /// This property ensures unique ownership before providing mutable access.
+    /// CoW is handled internally by Buffer.Linear.Bounded.
     public var mutableSpan: MutableSpan<Element> {
         @_lifetime(&self)
         @inlinable
         mutating get {
-            _makeUnique()
-            let ptr = unsafe _storage.pointer(at: .zero)
-            let span = unsafe MutableSpan(_unsafeStart: ptr, count: N)
-            return unsafe _overrideLifetime(span, mutating: &self)
+            _buffer.mutableSpan
+        }
+        @_lifetime(&self)
+        @inlinable
+        _modify {
+            yield &_buffer.mutableSpan
         }
     }
 }
@@ -26,13 +29,11 @@ extension Vector where Element: Copyable {
     @inlinable
     public init(_ elements: consuming InlineArray<N, Element>) {
         let capacity = Index_Primitives.Index<Element>.Count(Cardinal(UInt(N)))
-        let storage = Storage<Element>.Heap.create(minimumCapacity: capacity)
+        var buffer = Buffer<Element>.Linear.Bounded(minimumCapacity: capacity)
         for i in 0..<N {
-            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            storage.initialize(to: elements[i], at: slot)
+            _ = buffer.append(elements[i])
         }
-        storage.initialization = .linear(count: capacity)
-        self.init(_storage: storage)
+        self.init(_buffer: buffer)
     }
 }
 
@@ -41,13 +42,11 @@ extension Vector where Element: Copyable {
     @inlinable
     public init(repeating value: Element) {
         let capacity = Index_Primitives.Index<Element>.Count(Cardinal(UInt(N)))
-        let storage = Storage<Element>.Heap.create(minimumCapacity: capacity)
-        for i in 0..<N {
-            let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-            storage.initialize(to: value, at: slot)
+        var buffer = Buffer<Element>.Linear.Bounded(minimumCapacity: capacity)
+        for _ in 0..<N {
+            _ = buffer.append(value)
         }
-        storage.initialization = .linear(count: capacity)
-        self.init(_storage: storage)
+        self.init(_buffer: buffer)
     }
 }
 
@@ -59,31 +58,19 @@ extension Vector where Element: Copyable {
     public var elements: InlineArray<N, Element> {
         get {
             let firstSlot: Index_Primitives.Index<Element> = .zero
-            var result = unsafe InlineArray<N, Element>(repeating: _storage.pointer(at: firstSlot).pointee)
+            var result = InlineArray<N, Element>(repeating: _buffer[firstSlot])
             for i in 1..<N {
                 let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-                result[i] = unsafe _storage.pointer(at: slot).pointee
+                result[i] = _buffer[slot]
             }
             return result
         }
         set {
-            _makeUnique()
             for i in 0..<N {
                 let slot = Index_Primitives.Index<Element>(Ordinal(UInt(i)))
-                unsafe (_storage.pointer(at: slot).pointee = newValue[i])
+                _buffer[slot] = newValue[i]
             }
         }
-    }
-}
-
-// MARK: - Copy-on-Write
-
-extension Vector where Element: Copyable {
-    /// Ensures unique ownership of storage for mutation.
-    @usableFromInline
-    mutating func _makeUnique() {
-        guard !isKnownUniquelyReferenced(&_storage) else { return }
-        _storage = _storage.copy()
     }
 }
 
@@ -92,17 +79,18 @@ extension Vector where Element: Copyable {
 extension Vector where Element: Copyable {
     /// Accesses the element at the given bounded index with copy-on-write semantics.
     ///
+    /// CoW is handled internally by Buffer.Linear.Bounded's Copyable subscript.
+    ///
     /// - Parameter index: The bounded index of the element to access.
     @inlinable
     public subscript(index: Index) -> Element {
         _read {
             let slot = Index_Primitives.Index<Element>(index.ordinal)
-            yield unsafe _storage.pointer(at: slot).pointee
+            yield _buffer[slot]
         }
         _modify {
-            _makeUnique()
             let slot = Index_Primitives.Index<Element>(index.ordinal)
-            yield unsafe &_storage.pointer(at: slot).pointee
+            yield &_buffer[slot]
         }
     }
 }
@@ -117,6 +105,6 @@ extension Vector where Element: Copyable {
     @inlinable
     public func element(at index: Index) -> Element {
         let slot = Index_Primitives.Index<Element>(index.ordinal)
-        return unsafe _storage.pointer(at: slot).pointee
+        return _buffer[slot]
     }
 }

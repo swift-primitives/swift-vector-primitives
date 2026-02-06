@@ -34,13 +34,12 @@ extension Vector.Inline where Element: ~Copyable {
     ///   starting at the provided pointer.
     @inlinable
     public init(initializing initializer: (UnsafeMutablePointer<Element>) -> Void) {
-        var storage = Storage<Element>.Inline<N>()
-        let ptr: UnsafeMutablePointer<Element> = unsafe storage.pointer(at: .zero)
-        unsafe initializer(ptr)
-        storage.initialization = .linear(count: Index_Primitives.Index<Element>.Count(Cardinal(UInt(N))))
-        self.init(_storage: storage)
+        let buffer = Buffer<Element>.Linear.Inline<N>(
+            initializingCount: N,
+            with: initializer
+        )
+        self.init(_buffer: buffer)
     }
-
 
     /// Borrowing iteration.
     @inlinable
@@ -61,36 +60,6 @@ extension Vector.Inline where Element: ~Copyable {
         _ body: (borrowing Element) throws(E) -> R
     ) throws(E) -> R {
         let slot = Index_Primitives.Index<Element>(index.ordinal)
-        return try unsafe body(_storage.pointer(at: slot).pointee)
-    }
-
-    // MARK: - Span Access
-
-    /// Read-only span of all vector elements.
-    ///
-    /// Provides zero-copy access to the vector's contiguous storage.
-    /// Elements are ordered from index 0 to N-1.
-    @inlinable
-    public var span: Span<Element> {
-        _read {
-            let ptr = unsafe _storage.pointer(at: .zero)
-            yield unsafe Span(_unsafeStart: ptr, count: N)
-        }
-    }
-
-    /// Mutable span of all vector elements.
-    ///
-    /// Provides zero-copy mutable access to the vector's contiguous storage.
-    /// Elements are ordered from index 0 to N-1.
-    @inlinable
-    public var mutableSpan: MutableSpan<Element> {
-        _read {
-            let ptr = unsafe UnsafeMutablePointer(mutating: _storage.pointer(at: .zero))
-            yield unsafe MutableSpan(_unsafeStart: ptr, count: N)
-        }
-        _modify {
-            var s = unsafe MutableSpan(_unsafeStart: _storage.pointer(at: .zero), count: N)
-            yield &s
-        }
+        return try body(_buffer[slot])
     }
 }
