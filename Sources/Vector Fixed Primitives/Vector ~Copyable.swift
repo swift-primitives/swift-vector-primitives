@@ -61,3 +61,22 @@ extension Vector where Element: ~Copyable {
         }
     }
 }
+
+// MARK: - Typed Subscript (~Copyable)
+
+extension Vector where Element: ~Copyable {
+    /// Accesses the element at the given bounded index.
+    ///
+    /// - Parameter index: The bounded index of the element to access.
+    @inlinable
+    public subscript(index: Index) -> Element {
+        _read {
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe _storage.pointer(at: slot).pointee
+        }
+        _modify {
+            let slot = Index_Primitives.Index<Element>(index.ordinal)
+            yield unsafe &_storage.pointer(at: slot).pointee
+        }
+    }
+}
