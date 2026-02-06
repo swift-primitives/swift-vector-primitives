@@ -48,8 +48,7 @@ extension Vector.Inline where Element: ~Copyable {
         _ body: (borrowing Element) throws(E) -> Void
     ) throws(E) {
         for i in 0..<N {
-            let idx = try! Vector<Element, N>.Index(i)
-            try body(self[idx])
+            try body(self[.init(__unchecked: (), .init(UInt(i)))])
         }
     }
 

@@ -33,7 +33,10 @@
 /// When `Element` is `Copyable`, `Vector` uses copy-on-write semantics:
 /// copies share storage until mutation, providing efficient value semantics.
 @safe
-public struct Vector<Element: ~Copyable, let N: Int>: ~Copyable {
+public struct Vector<
+    Element: ~Copyable,
+    let N: Int
+>: ~Copyable {
 
     // MARK: - Storage
 
@@ -52,23 +55,6 @@ public struct Vector<Element: ~Copyable, let N: Int>: ~Copyable {
 
 // MARK: - Conditional Conformances
 
+
 extension Vector: Copyable where Element: Copyable {}
 extension Vector: @unchecked Sendable where Element: Sendable {}
-
-// MARK: - Index
-
-extension Vector where Element: ~Copyable {
-    /// Type-safe bounded index for vector elements.
-    ///
-    /// Uses `Algebra.Z<N>` to provide compile-time bounds safety,
-    /// ensuring indices are always valid for this vector's dimension.
-    ///
-    /// ## Example
-    ///
-    /// ```swift
-    /// let idx: Vector<Int, 3>.Index = try! Vector<Int, 3>.Index(0)
-    /// var v = Vector<Int, 3>.Inline([1, 2, 3])
-    /// print(v[idx])  // 1
-    /// ```
-    public typealias Index = Algebra.Z<N>
-}
