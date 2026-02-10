@@ -61,7 +61,6 @@ extension Vector {
     @inlinable
     public subscript<Tag: ~Copyable>(offset: Index_Primitives.Index<Tag>.Offset) -> Index_Primitives.Index<Tag>
     where Bound == Index_Primitives.Index<Tag> {
-        precondition(offset >= .zero, "Offset must be non-negative")
         precondition(offset.vector < count, "Offset out of bounds")
         // Convert the Tag offset to a Vector offset for internal arithmetic
         let vectorOffset = Vector<Bound>.Index.Offset(offset.vector)
@@ -80,7 +79,6 @@ extension Vector.Reversed {
     @inlinable
     public subscript<Tag: ~Copyable>(offset: Index_Primitives.Index<Tag>.Offset) -> Index_Primitives.Index<Tag>
     where Bound == Index_Primitives.Index<Tag> {
-        precondition(offset >= .zero, "Offset must be non-negative")
         precondition(offset.vector < count, "Offset out of bounds")
         // Convert offset to Vector.Index arithmetic
         // Reversed subscript: end - 1 - offset
