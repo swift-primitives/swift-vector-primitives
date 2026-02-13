@@ -17,9 +17,9 @@ public import Sequence_Primitives
 // Vector.Reversed.Iterator are defined in Vector.swift (same file
 // as the type definitions, as required by Swift).
 
-extension Vector.Iterator: IteratorProtocol where Bound: Copyable {}
+extension Vector.Iterator: Sequence.Iterator.`Protocol`, IteratorProtocol where Bound: Copyable {}
 
-extension Vector.Reversed.Iterator: IteratorProtocol where Bound: Copyable {}
+extension Vector.Reversed.Iterator: Sequence.Iterator.`Protocol`, IteratorProtocol where Bound: Copyable {}
 
 // MARK: - Swift.Sequence Conformance
 
