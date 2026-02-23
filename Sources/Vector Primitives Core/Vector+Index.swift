@@ -61,9 +61,8 @@ extension Vector {
     @inlinable
     public subscript<Tag: ~Copyable>(offset: Index_Primitives.Index<Tag>.Offset) -> Index_Primitives.Index<Tag>
     where Bound == Index_Primitives.Index<Tag> {
-        precondition(offset.vector < count, "Offset out of bounds")
-        // Convert the Tag offset to a Vector offset for internal arithmetic
-        let vectorOffset = Vector<Bound>.Index.Offset(offset.vector)
+        let vectorOffset: Vector<Bound>.Index.Offset = offset.retag()
+        precondition(vectorOffset < count, "Offset out of bounds")
         let position = try! start + vectorOffset  // Safe: precondition ensures non-negative result
         return transform(position)
     }
@@ -79,12 +78,11 @@ extension Vector.Reversed {
     @inlinable
     public subscript<Tag: ~Copyable>(offset: Index_Primitives.Index<Tag>.Offset) -> Index_Primitives.Index<Tag>
     where Bound == Index_Primitives.Index<Tag> {
-        precondition(offset.vector < count, "Offset out of bounds")
-        // Convert offset to Vector.Index arithmetic
+        let vectorOffset: Vector<Bound>.Index.Offset = offset.retag()
+        precondition(vectorOffset < count, "Offset out of bounds")
         // Reversed subscript: end - 1 - offset
         // Safe: precondition ensures count > 0, so end > start, so end > 0
         let lastIndex = try! end.predecessor.exact()
-        let vectorOffset = Vector<Bound>.Index.Offset(offset.vector)
         let position = try! lastIndex - vectorOffset  // Safe: precondition ensures valid
         return transform(position)
     }
