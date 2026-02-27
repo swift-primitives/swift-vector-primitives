@@ -10,7 +10,13 @@
 // ===----------------------------------------------------------------------===//
 
 public import Property_Primitives
-public import Sequence_Primitives
+
+// MARK: - Tag
+
+extension Swift.Range {
+    /// Tag type for bound-mapping operations on ranges.
+    public enum Map {}
+}
 
 // MARK: - Map Accessor
 
@@ -24,7 +30,7 @@ extension Swift.Range {
     /// let bitRange = intRange.map.bounds { $0.retag(Bit.self) }
     /// ```
     @inlinable
-    public var map: Property<Sequence.Map, Swift.Range<Bound>> {
+    public var map: Property<Map, Swift.Range<Bound>> {
         Property(self)
     }
 }
@@ -42,7 +48,7 @@ extension Property {
     /// - Returns: A new range with transformed bounds.
     @inlinable
     public func bounds<Bound: Comparable, T: Comparable>(_ transform: (Bound) -> T) -> Swift.Range<T>
-    where Tag == Sequence.Map, Base == Swift.Range<Bound> {
+    where Tag == Swift.Range<Bound>.Map, Base == Swift.Range<Bound> {
         transform(base.lowerBound) ..< transform(base.upperBound)
     }
 }

@@ -139,11 +139,15 @@ public struct Vector<Bound: ~Copyable> {
         @usableFromInline
         let transform: @Sendable (Index) -> Bound
 
+        @usableFromInline
+        var _spanValue: Bound?
+
         @inlinable
         init(current: Index, end: Index, transform: @escaping @Sendable (Index) -> Bound) {
             self.current = current
             self.end = end
             self.transform = transform
+            self._spanValue = nil
         }
 
         /// Advances to the next element and returns it, or `nil` if exhausted.
@@ -194,10 +198,14 @@ public struct Vector<Bound: ~Copyable> {
             @usableFromInline
             var exhausted: Bool
 
+            @usableFromInline
+            var _spanValue: Bound?
+
             @inlinable
             init(start: Index, end: Index, transform: @escaping @Sendable (Index) -> Bound) {
                 self.start = start
                 self.transform = transform
+                self._spanValue = nil
 
                 if start == end {
                     self.current = start

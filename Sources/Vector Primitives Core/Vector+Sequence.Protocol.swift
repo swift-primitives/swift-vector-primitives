@@ -17,9 +17,47 @@ public import Sequence_Primitives
 // Vector.Reversed.Iterator are defined in Vector.swift (same file
 // as the type definitions, as required by Swift).
 
-extension Vector.Iterator: Sequence.Iterator.`Protocol`, IteratorProtocol where Bound: Copyable {}
+extension Vector.Iterator: IteratorProtocol where Bound: Copyable {}
 
-extension Vector.Reversed.Iterator: Sequence.Iterator.`Protocol`, IteratorProtocol where Bound: Copyable {}
+extension Vector.Iterator: Sequence.Iterator.`Protocol` where Bound: Copyable {
+    @_lifetime(&self)
+    @inlinable
+    public mutating func nextSpan(maximumCount: Cardinal) -> Swift.Span<Bound> {
+        let hasNext = maximumCount > .zero && current < end
+        if hasNext {
+            _spanValue = transform(current)
+            current = current + .one
+        }
+        let ptr = withUnsafeMutablePointer(to: &_spanValue) { p in
+            unsafe UnsafePointer<Bound>(UnsafeRawPointer(p).assumingMemoryBound(to: Bound.self))
+        }
+        let s = unsafe Span(_unsafeStart: ptr, count: hasNext ? 1 : 0)
+        return unsafe _overrideLifetime(s, mutating: &self)
+    }
+}
+
+extension Vector.Reversed.Iterator: IteratorProtocol where Bound: Copyable {}
+
+extension Vector.Reversed.Iterator: Sequence.Iterator.`Protocol` where Bound: Copyable {
+    @_lifetime(&self)
+    @inlinable
+    public mutating func nextSpan(maximumCount: Cardinal) -> Swift.Span<Bound> {
+        let hasNext = maximumCount > .zero && !exhausted
+        if hasNext {
+            _spanValue = transform(current)
+            if current == start {
+                exhausted = true
+            } else {
+                current = try! current.predecessor.exact()
+            }
+        }
+        let ptr = withUnsafeMutablePointer(to: &_spanValue) { p in
+            unsafe UnsafePointer<Bound>(UnsafeRawPointer(p).assumingMemoryBound(to: Bound.self))
+        }
+        let s = unsafe Span(_unsafeStart: ptr, count: hasNext ? 1 : 0)
+        return unsafe _overrideLifetime(s, mutating: &self)
+    }
+}
 
 // MARK: - Swift.Sequence Conformance
 
