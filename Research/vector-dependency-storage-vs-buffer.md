@@ -2,9 +2,9 @@
 
 <!--
 ---
-version: 2.0.0
-last_updated: 2026-02-06
-status: IN_PROGRESS
+version: 2.0.1
+last_updated: 2026-03-15
+status: DEFERRED
 ---
 -->
 
@@ -226,3 +226,11 @@ These are not Vector-specific features. They are general capabilities of a bound
 - `swift-buffer-primitives/Research/theoretical-buffer-primitives-design.md` — Discipline design philosophy
 - `swift-storage-primitives/Sources/Storage Primitives Core/Storage.swift` — Storage type definitions
 - `swift-vector-primitives/Sources/Vector Primitives Core/Vector.swift` — Vector type definition
+
+### Deferral
+
+**Date**: 2026-03-15
+
+**Reason**: The document identified that Vector should be built on Buffer.Linear (not raw Storage) after buffer-primitives gains general-purpose capabilities (subscript, Memory.Contiguous.Protocol, CoW, MutableSpan). The "next steps" require enhancing Buffer.Linear.Bounded and Buffer.Linear.Inline first. This was blocked by the buffer-primitives inline module split in February 2026, which restructured the buffer modules. The Buffer.Linear enhancements have not been implemented in the post-split structure.
+
+**Resume when**: Buffer.Linear.Bounded gains subscript access, Memory.Contiguous.Protocol conformance, and Copy-on-Write support, at which point Vector can be migrated to use Buffer as its substrate.
