@@ -9,7 +9,7 @@
 //
 // ===----------------------------------------------------------------------===//
 
-public import Property_Primitives
+internal import Property_Primitives
 public import Sequence_Primitives
 
 // MARK: - Sequence Property Accessors for Vector
