@@ -28,7 +28,7 @@ extension Vector.Iterator: Sequence.Iterator.`Protocol` where Bound: Copyable {
             _spanValue = transform(current)
             current = current + .one
         }
-        let ptr = withUnsafeMutablePointer(to: &_spanValue) { p in
+        let ptr = unsafe withUnsafeMutablePointer(to: &_spanValue) { p in
             unsafe UnsafePointer<Bound>(UnsafeRawPointer(p).assumingMemoryBound(to: Bound.self))
         }
         let s = unsafe Span(_unsafeStart: ptr, count: hasNext ? 1 : 0)
@@ -51,7 +51,7 @@ extension Vector.Reversed.Iterator: Sequence.Iterator.`Protocol` where Bound: Co
                 current = try! current.predecessor.exact()
             }
         }
-        let ptr = withUnsafeMutablePointer(to: &_spanValue) { p in
+        let ptr = unsafe withUnsafeMutablePointer(to: &_spanValue) { p in
             unsafe UnsafePointer<Bound>(UnsafeRawPointer(p).assumingMemoryBound(to: Bound.self))
         }
         let s = unsafe Span(_unsafeStart: ptr, count: hasNext ? 1 : 0)
