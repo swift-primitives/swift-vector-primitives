@@ -19,7 +19,6 @@ public import Property_Primitives
 extension Property.View where Base: ~Copyable {
 
     /// Consuming iteration: `.drain { }`
-    @_lifetime(&self)
     @inlinable
     public mutating func callAsFunction<Bound: ~Copyable>(
         _ body: (consuming Bound) -> Void
@@ -28,7 +27,6 @@ extension Property.View where Base: ~Copyable {
     }
 
     /// Consuming iteration on reversed vector: `.drain { }`
-    @_lifetime(&self)
     @inlinable
     public mutating func callAsFunction<Bound: ~Copyable>(
         _ body: (consuming Bound) -> Void
