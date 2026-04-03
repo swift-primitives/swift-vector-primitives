@@ -17,6 +17,14 @@ let package = Package(
             targets: ["Vector Primitives"]
         ),
         .library(
+            name: "Vector Primitives Core",
+            targets: ["Vector Primitives Core"]
+        ),
+        .library(
+            name: "Vector Primitives Standard Library Integration",
+            targets: ["Vector Primitives Standard Library Integration"]
+        ),
+        .library(
             name: "Vector Primitives Test Support",
             targets: ["Vector Primitives Test Support"]
         ),
