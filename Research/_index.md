@@ -4,6 +4,7 @@
 |----------|-------|------|--------|
 | noncopyable-conditional-copyable | ~Copyable and conditional Copyable for stored Vector.Inline (pre-repurpose) | 2026-02-05 | SUPERSEDED |
 | vector-dependency-storage-vs-buffer | Should stored Vector depend on Storage or Buffer? (pre-repurpose) | 2026-02-06 | SUPERSEDED |
+| audit | Pre-publication dependency-tree audit: 30 items in struct body, mitigated by [PATTERN-022] | 2026-04-08 | LEGACY |
 
 ## Note
 
