@@ -119,7 +119,14 @@ public struct Vector<Bound: ~Copyable> {
 
     public var end: Index
 
-    @Inlined public var count: Index.Count
+    @usableFromInline
+    var _count: Index.Count
+
+    @inlinable
+    public var count: Index.Count {
+        _read { yield _count }
+        _modify { yield &_count }
+    }
 
     @usableFromInline
     let transform: @Sendable (Index) -> Bound
@@ -176,7 +183,14 @@ public struct Vector<Bound: ~Copyable> {
         @usableFromInline
         var end: Index
 
-        @Inlined public var count: Index.Count
+        @usableFromInline
+        var _count: Index.Count
+
+        @inlinable
+        public var count: Index.Count {
+            _read { yield _count }
+            _modify { yield &_count }
+        }
 
         @usableFromInline
         let transform: @Sendable (Index) -> Bound
@@ -244,7 +258,7 @@ public struct Vector<Bound: ~Copyable> {
         ) {
             self.start = start
             self.end = end
-            self.count = count
+            self._count = count
             self.transform = transform
         }
 
@@ -253,7 +267,7 @@ public struct Vector<Bound: ~Copyable> {
             self.start = start
             self.end = end
             // Safe: caller guarantees end >= start
-            self.count = Index.Count(try! start.position.distance.forward(to: end.position))
+            self._count = Index.Count(try! start.position.distance.forward(to: end.position))
             self.transform = transform
         }
 
@@ -321,7 +335,7 @@ public struct Vector<Bound: ~Copyable> {
     ) {
         self.start = .zero
         self.end = .zero + count
-        self.count = count
+        self._count = count
         self.transform = transform
     }
 
@@ -339,7 +353,7 @@ public struct Vector<Bound: ~Copyable> {
         }
         self.start = start
         self.end = end
-        self.count = Index.Count(try! start.position.distance.forward(to: end.position))
+        self._count = Index.Count(try! start.position.distance.forward(to: end.position))
         self.transform = transform
     }
 
@@ -353,7 +367,7 @@ public struct Vector<Bound: ~Copyable> {
     ) {
         self.start = start
         self.end = end
-        self.count = Index.Count(try! start.position.distance.forward(to: end.position))
+        self._count = Index.Count(try! start.position.distance.forward(to: end.position))
         self.transform = transform
     }
 
