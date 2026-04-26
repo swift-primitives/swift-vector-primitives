@@ -23,7 +23,7 @@ extension Property.View where Base: ~Copyable {
     public mutating func callAsFunction<Bound: ~Copyable>(
         _ body: (consuming Bound) -> Void
     ) where Tag == Vector<Bound>.Drain, Base == Vector<Bound> {
-        unsafe base.pointee._consumingDrain(body)
+        unsafe base.value._consumingDrain(body)
     }
 
     /// Consuming iteration on reversed vector: `.drain { }`
@@ -31,6 +31,6 @@ extension Property.View where Base: ~Copyable {
     public mutating func callAsFunction<Bound: ~Copyable>(
         _ body: (consuming Bound) -> Void
     ) where Tag == Vector<Bound>.Drain, Base == Vector<Bound>.Reversed {
-        unsafe base.pointee._consumingDrain(body)
+        unsafe base.value._consumingDrain(body)
     }
 }
