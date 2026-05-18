@@ -1,0 +1,9 @@
+# .github/metadata.yaml
+# Triaged by AI-assisted bulk pass (2026-04-29).
+description: "Vector types for Swift."
+topics:
+  - primitives
+  - vector
+homepage: "https://swift-institute.org"
+readme:
+  family: E

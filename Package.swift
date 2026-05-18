@@ -1,4 +1,4 @@
-// swift-tools-version: 6.2
+// swift-tools-version: 6.3.1
 
 import PackageDescription
 
@@ -9,33 +9,91 @@ let package = Package(
         .iOS(.v26),
         .tvOS(.v26),
         .watchOS(.v26),
-        .visionOS(.v26)
+        .visionOS(.v26),
     ],
     products: [
         .library(
             name: "Vector Primitives",
             targets: ["Vector Primitives"]
-        )
+        ),
+        .library(
+            name: "Vector Primitives Core",
+            targets: ["Vector Primitives Core"]
+        ),
+        .library(
+            name: "Vector Primitives Standard Library Integration",
+            targets: ["Vector Primitives Standard Library Integration"]
+        ),
+        .library(
+            name: "Vector Primitives Test Support",
+            targets: ["Vector Primitives Test Support"]
+        ),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/swift-primitives/swift-index-primitives.git", branch: "main"),
+        .package(url: "https://github.com/swift-primitives/swift-cyclic-primitives.git", branch: "main"),
+        .package(url: "https://github.com/swift-primitives/swift-property-primitives.git", branch: "main"),
+        .package(url: "https://github.com/swift-primitives/swift-range-primitives.git", branch: "main"),
+        .package(url: "https://github.com/swift-primitives/swift-sequence-primitives.git", branch: "main"),
     ],
     targets: [
         .target(
-            name: "Vector Primitives"
+            name: "Vector Primitives Core",
+            dependencies: [
+                .product(name: "Index Primitives", package: "swift-index-primitives"),
+                .product(name: "Cyclic Primitives", package: "swift-cyclic-primitives"),
+                .product(name: "Property Primitives", package: "swift-property-primitives"),
+                .product(name: "Range Primitives", package: "swift-range-primitives"),
+                .product(name: "Sequence Primitives", package: "swift-sequence-primitives"),
+            ]
+        ),
+        .target(
+            name: "Vector Primitives Standard Library Integration",
+            dependencies: [
+                "Vector Primitives Core",
+            ]
+        ),
+        .target(
+            name: "Vector Primitives",
+            dependencies: [
+                "Vector Primitives Core",
+                "Vector Primitives Standard Library Integration",
+            ]
+        ),
+        .target(
+            name: "Vector Primitives Test Support",
+            dependencies: [
+                "Vector Primitives",
+                .product(name: "Index Primitives Test Support", package: "swift-index-primitives"),
+            ],
+            path: "Tests/Support"
         ),
         .testTarget(
             name: "Vector Primitives Tests",
-            dependencies: ["Vector Primitives"]
-        )
+            dependencies: [
+                "Vector Primitives",
+                "Vector Primitives Test Support",
+            ]
+        ),
     ],
     swiftLanguageModes: [.v6]
 )
 
 for target in package.targets where ![.system, .binary, .plugin, .macro].contains(target.type) {
-    let settings: [SwiftSetting] = [
+    let ecosystem: [SwiftSetting] = [
+        .strictMemorySafety(),
         .enableUpcomingFeature("ExistentialAny"),
         .enableUpcomingFeature("InternalImportsByDefault"),
         .enableUpcomingFeature("MemberImportVisibility"),
+        .enableUpcomingFeature("NonisolatedNonsendingByDefault"),
+        .enableExperimentalFeature("LifetimeDependence"),
         .enableExperimentalFeature("Lifetimes"),
-        .strictMemorySafety()
+        .enableExperimentalFeature("SuppressedAssociatedTypes"),
+        .enableUpcomingFeature("InferIsolatedConformances"),
+        .enableUpcomingFeature("LifetimeDependence"),
     ]
-    target.swiftSettings = (target.swiftSettings ?? []) + settings
+
+    let package: [SwiftSetting] = []
+
+    target.swiftSettings = (target.swiftSettings ?? []) + ecosystem + package
 }

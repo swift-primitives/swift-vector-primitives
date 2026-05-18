@@ -1,0 +1,27 @@
+{
+  "$schema": "https://swift-institute.org/schemas/experiments-index-v1.json",
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-04-18",
+  "title": "Vector Primitives Experiments",
+  "blurb": "",
+  "scope": "swift-vector-primitives (swift-primitives)",
+  "experiments": [
+    {
+      "directory": "link-topology-element-free",
+      "purpose": "Element-free link topology assumptions for value-generic intrusive list nodes \u2014 MemoryLayout.offset(of:), links-first layout, Sendable struct generic over Tag: ~Copyable. V1 REFUTED, V2-V5 CONFIRMED.",
+      "date": "2026-04-01",
+      "toolchain": "Swift 6.3",
+      "status": "PARTIAL",
+      "statusDetail": null,
+      "statusRaw": "PARTIAL",
+      "supersededBy": null,
+      "crossRefs": []
+    }
+  ],
+  "narrativeSections": [
+    {
+      "heading": "Summary",
+      "body": "### noncopyable-inline-init\n\n**Purpose**: Validate initialization patterns for `~Copyable` elements in inline storage.\n\n**Key Findings**:\n\n1. **Closure-based init works** \u2014 `init(initializing: (UnsafeMutablePointer<Element>) -> Void)` successfully initializes `~Copyable` elements\n2. **Consuming init works** \u2014 Multiple `consuming Element` parameters work, but cannot be captured by closures; must use direct pointer access\n3. **stdlib pattern works** \u2014 `init(unsafeUninitializedCapacity:initializingWith:)` works with modified signature (return count instead of inout)\n4. **`@_rawLayout` blocks conditional Copyable** \u2014 Types using `@_rawLayout` are always `~Copyable`\n5. **deinit + conditional Copyable is incompatible** \u2014 Swift constraint: types with deinit cannot conditionally conform to Copyable\n6. **`InlineArray` backing crashes** \u2014 Using `InlineArray<capacity, Int>` as storage backing for `~Copyable` elements crashes during deinit (memory layout mismatch)\n\n**Critical Conclusion**:\n- Storage types supporting `~Copyable` elements MUST have deinit for cleanup\n- Types with deinit CANNOT conditionally conform to Copyable\n- Therefore: `Vector.Inline` supporting `~Copyable` elements CANNOT be conditionally Copyable\n- This is a **fundamental Swift language constraint**, not a bug or design flaw\n- The current `@_rawLayout`-based architecture is CORRECT\n\n**Recommendation**:\n- Add `~Copyable` initializers to `Vector.Inline` (closure-based or consuming)\n- Do NOT attempt conditional Copyable \u2014 it is architecturally impossible\n\n### mutablespan-get-only\n\n**Purpose**: Investigate why `v.mutableSpan[0] = x` fails with \"cannot assign through subscript: 'mutableSpan' is a get-only property\".\n\n**Key Findings**:\n\n1. **Not Vector.Inline-specific** \u2014 Even `Array.mutableSpan[0] = x` fails on Swift 6.2.3\n2. **Root cause**: `mutating get` returns a value, not an inout reference. Subscript assignment requires read-modify-write on the property, but with only a getter (no setter/_modify), the compiler has no writeback path\n3. **Workaround**: Capture `mutableSpan` in a local `var`, then subscript-assign through it\n4. **Writes are visible**: MutableSpan writes through its internal `UnsafeMutablePointer`, so changes are visible through the original container without writeback\n\n**Workaround pattern**:\n```swift\nvar span = v.mutableSpan\nspan[0] = 100\nspan[1] = 200\n// writes visible through v after span goes out of scope\n```\n\n**Recommendation**:\n- Fix all tests to use the local-var capture pattern\n- This is a Swift 6.2.3 compiler limitation, not a design flaw in our types"
+    }
+  ]
+}
