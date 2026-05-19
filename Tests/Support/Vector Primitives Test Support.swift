@@ -34,19 +34,6 @@ extension Vector where Bound == UInt {
         )
     }
 
-    // swiftlint:disable:next workaround_marker_present
-    // WORKAROUND: the two test-only convenience inits below trip a SIL
-    // assertion in the `MandatoryPerformanceOptimizations` pass (sub-pass
-    // `eliminateDeadAllocations`) on the Swift 6.3.2 RELEASE Wasm SDK
-    // Embedded target. Guard them out of the Embedded build graph — Test
-    // Support is not consumed by Embedded targets.
-    // WHY: `@inlinable` init delegating via @Sendable closure into a
-    //      stored-closure field hits `isLegalSILType` assertion at
-    //      SILType.h:115 during mandatory monomorphization.
-    // TRACKING: swift-institute/Issues/swift-issue-embedded-wasm-mandatory-perf-crash/.
-    // WHEN TO REMOVE: when the Wasm SDK ships against Swift ≥ 6.4 (the
-    //                 bug is already fixed on 6.4-dev nightly Embedded).
-    #if !hasFeature(Embedded)
     /// Creates a vector of the given count whose transform projects positions through `.position.rawValue`.
     @inlinable
     public init(
@@ -64,7 +51,6 @@ extension Vector where Bound == UInt {
     ) throws(Vector<UInt>.Error) {
         try self.init(start: start, end: end, transform: { $0.position.rawValue })
     }
-    #endif
 }
 
 /// Errors for domain-vector initialization over Int.
