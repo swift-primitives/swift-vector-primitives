@@ -9,4 +9,4 @@
 //
 // ===----------------------------------------------------------------------===//
 
-@_exported import Vector_Primitives_Core
+@_exported import Vector_Primitive

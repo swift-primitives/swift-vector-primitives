@@ -12,13 +12,18 @@ let package = Package(
         .visionOS(.v26),
     ],
     products: [
+        // MARK: - Type module (lean ~Copyable `Vector` type + structural surface;
+        //         Copyable-imposing Sequence/Iterator conformances live in the
+        //         plural ops module per [MOD-004]/[MOD-036]).
+        .library(
+            name: "Vector Primitive",
+            targets: ["Vector Primitive"]
+        ),
+        // MARK: - Ops module + [MOD-005] umbrella (owns the Sequence/Iterator
+        //         conformances; re-exports the lean type root + SLI).
         .library(
             name: "Vector Primitives",
             targets: ["Vector Primitives"]
-        ),
-        .library(
-            name: "Vector Primitives Core",
-            targets: ["Vector Primitives Core"]
         ),
         .library(
             name: "Vector Primitives Standard Library Integration",
@@ -31,33 +36,39 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/swift-primitives/swift-index-primitives.git", branch: "main"),
-        .package(url: "https://github.com/swift-primitives/swift-cyclic-primitives.git", branch: "main"),
         .package(url: "https://github.com/swift-primitives/swift-property-primitives.git", branch: "main"),
-        .package(url: "https://github.com/swift-primitives/swift-range-primitives.git", branch: "main"),
         .package(url: "https://github.com/swift-primitives/swift-sequence-primitives.git", branch: "main"),
     ],
     targets: [
+        // MARK: - Type module — lean `Vector` type + structural index/range surface
+        //         + Property.Inout forEach/drain accessors. No Sequence/Iterator
+        //         conformances (those impose Copyable per [MOD-004]); drops the
+        //         Sequence Primitives dep accordingly.
         .target(
-            name: "Vector Primitives Core",
+            name: "Vector Primitive",
             dependencies: [
                 .product(name: "Index Primitives", package: "swift-index-primitives"),
-                .product(name: "Cyclic Primitives", package: "swift-cyclic-primitives"),
                 .product(name: "Property Primitives", package: "swift-property-primitives"),
-                .product(name: "Range Primitives", package: "swift-range-primitives"),
-                .product(name: "Sequence Primitives", package: "swift-sequence-primitives"),
             ]
         ),
+        // MARK: - Standard Library Integration — UnsafePointer + Index extensions
+        //         (genuine stdlib interop; re-exports the lean type root).
         .target(
             name: "Vector Primitives Standard Library Integration",
             dependencies: [
-                "Vector Primitives Core",
+                "Vector Primitive",
             ]
         ),
+        // MARK: - Ops module + umbrella — owns the Sequence/Iterator conformances
+        //         ([MOD-004] constraint isolation); re-exports the lean type root
+        //         and SLI per [MOD-005]. Consumers that iterate a `Vector` import
+        //         this plural module (SE-0444 MemberImportVisibility).
         .target(
             name: "Vector Primitives",
             dependencies: [
-                "Vector Primitives Core",
+                "Vector Primitive",
                 "Vector Primitives Standard Library Integration",
+                .product(name: "Sequence Primitives", package: "swift-sequence-primitives"),
             ]
         ),
         .target(

@@ -10,6 +10,7 @@
 // ===----------------------------------------------------------------------===//
 
 public import Sequence_Primitives
+public import Vector_Primitive
 
 // MARK: - Conditional IteratorProtocol Conformance
 //
@@ -21,21 +22,13 @@ extension Vector.Iterator: IteratorProtocol where Bound: Copyable {}
 
 extension Vector.Iterator: Sequence.Iterator.`Protocol` where Bound: Copyable {
     /// Yields up to `maximumCount` elements as a single-element span.
+    ///
+    /// Delegates to the lean type module's `_nextSpan` package window, which
+    /// owns the internal iterator storage ([MOD-004]/[MOD-036]).
     @_lifetime(&self)
     @inlinable
     public mutating func nextSpan(maximumCount: Cardinal) -> Swift.Span<Bound> {
-        let hasNext = maximumCount > .zero && current < end
-        if hasNext {
-            _spanValue = transform(current)
-            // Index<Bound> += .one resolves to the non-throwing
-            // `Ordinal.Protocol.+= (inout Self, Count)` operator.
-            current += .one
-        }
-        let ptr = unsafe withUnsafeMutablePointer(to: &_spanValue) { p in
-            unsafe UnsafePointer<Bound>(UnsafeRawPointer(p).assumingMemoryBound(to: Bound.self))
-        }
-        let s = unsafe Span(_unsafeStart: ptr, count: hasNext ? 1 : 0)
-        return unsafe _overrideLifetime(s, mutating: &self)
+        _nextSpan(maximumCount: maximumCount)
     }
 }
 
@@ -43,30 +36,13 @@ extension Vector.Reversed.Iterator: IteratorProtocol where Bound: Copyable {}
 
 extension Vector.Reversed.Iterator: Sequence.Iterator.`Protocol` where Bound: Copyable {
     /// Yields up to `maximumCount` elements (in reverse order) as a single-element span.
+    ///
+    /// Delegates to the lean type module's `_nextSpan` package window, which
+    /// owns the internal iterator storage ([MOD-004]/[MOD-036]).
     @_lifetime(&self)
     @inlinable
     public mutating func nextSpan(maximumCount: Cardinal) -> Swift.Span<Bound> {
-        let hasNext = maximumCount > .zero && !exhausted
-        if hasNext {
-            _spanValue = transform(current)
-            if current == start {
-                exhausted = true
-            } else {
-                // SAFETY: `current > start >= .zero` proves `current > .zero`,
-                // so `current.predecessor.exact()` cannot underflow. The
-                // `do/catch` sets `exhausted = true` on the unreachable path.
-                do throws(Ordinal.Error) {
-                    current = try current.predecessor.exact()
-                } catch {
-                    exhausted = true
-                }
-            }
-        }
-        let ptr = unsafe withUnsafeMutablePointer(to: &_spanValue) { p in
-            unsafe UnsafePointer<Bound>(UnsafeRawPointer(p).assumingMemoryBound(to: Bound.self))
-        }
-        let s = unsafe Span(_unsafeStart: ptr, count: hasNext ? 1 : 0)
-        return unsafe _overrideLifetime(s, mutating: &self)
+        _nextSpan(maximumCount: maximumCount)
     }
 }
 
@@ -96,7 +72,7 @@ extension Vector: Sequence.`Protocol` where Bound: Copyable {
     /// `Sequence.Protocol.Element` implicitly requires `Copyable` per SE-0427.
     @inlinable
     public borrowing func makeIterator() -> Iterator {
-        Iterator(current: start, end: end, transform: transform)
+        _makeSequenceIterator()
     }
 }
 
@@ -106,8 +82,7 @@ extension Vector: Sequence.Clearable where Bound: Copyable {
     /// Removes all elements by collapsing the vector to empty.
     @inlinable
     public mutating func removeAll() {
-        start = end
-        count = .zero
+        _clear()
     }
 }
 
@@ -120,7 +95,7 @@ extension Vector.Reversed: Sequence.`Protocol` where Bound: Copyable {
     /// Returns an iterator over the reversed vector elements.
     @inlinable
     public borrowing func makeIterator() -> Iterator {
-        Iterator(start: start, end: end, transform: transform)
+        _makeSequenceIterator()
     }
 }
 
@@ -128,7 +103,6 @@ extension Vector.Reversed: Sequence.Clearable where Bound: Copyable {
     /// Removes all elements by collapsing the reversed vector to empty.
     @inlinable
     public mutating func removeAll() {
-        start = end
-        count = .zero
+        _clear()
     }
 }

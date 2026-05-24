@@ -11,6 +11,7 @@
 
 internal import Property_Primitives
 public import Sequence_Primitives
+public import Vector_Primitive
 
 // MARK: - Sequence Property Accessors for Vector
 
