@@ -38,6 +38,7 @@ let package = Package(
         .package(url: "https://github.com/swift-primitives/swift-index-primitives.git", branch: "main"),
         .package(url: "https://github.com/swift-primitives/swift-property-primitives.git", branch: "main"),
         .package(url: "https://github.com/swift-primitives/swift-sequence-primitives.git", branch: "main"),
+        .package(url: "https://github.com/swift-primitives/swift-iterator-primitives.git", branch: "main"),
     ],
     targets: [
         // MARK: - Type module — lean `Vector` type + structural index/range surface
@@ -69,6 +70,7 @@ let package = Package(
                 "Vector Primitive",
                 "Vector Primitives Standard Library Integration",
                 .product(name: "Sequence Primitives", package: "swift-sequence-primitives"),
+                .product(name: "Iterable", package: "swift-iterator-primitives"),
             ]
         ),
         .target(
