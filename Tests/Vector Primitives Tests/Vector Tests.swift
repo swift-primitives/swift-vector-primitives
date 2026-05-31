@@ -62,7 +62,7 @@ extension VectorTests.Unit {
     @Test
     func `makeIterator produces correct sequence`() throws(VectorTestError) {
         let vector = try Vector(0..<3) { $0 + 10 }
-        var iterator = vector.makeIterator()
+        var iterator: Vector<Int>.Iterator = vector.makeIterator()
         #expect(iterator.next() == 10)
         #expect(iterator.next() == 11)
         #expect(iterator.next() == 12)
@@ -253,7 +253,7 @@ extension VectorReversedTests.Unit {
     func `reversed iterator produces correct order`() throws(VectorTestError) {
         let vector = try Vector(0..<3) { $0 }
         let reversed = vector.reversed()
-        var iterator = reversed.makeIterator()
+        var iterator: Vector<Int>.Reversed.Iterator = reversed.makeIterator()
         #expect(iterator.next() == 2)
         #expect(iterator.next() == 1)
         #expect(iterator.next() == 0)
@@ -333,7 +333,7 @@ extension VectorInvariantTests.Iterator {
     @Test
     func `INVARIANT: Iterator returns nil forever after exhaustion`() throws(VectorTestError) {
         let vector = try Vector(0..<3) { $0 }
-        var iterator = vector.makeIterator()
+        var iterator: Vector<Int>.Iterator = vector.makeIterator()
 
         // Exhaust the iterator
         _ = iterator.next()
@@ -349,7 +349,7 @@ extension VectorInvariantTests.Iterator {
     @Test
     func `INVARIANT: Reversed iterator returns nil forever after exhaustion`() throws(VectorTestError) {
         let vector = try Vector(0..<3) { $0 }
-        var iterator = vector.reversed().makeIterator()
+        var iterator: Vector<Int>.Reversed.Iterator = vector.reversed().makeIterator()
 
         // Exhaust
         _ = iterator.next()
@@ -365,7 +365,7 @@ extension VectorInvariantTests.Iterator {
     @Test
     func `INVARIANT: Empty iterator returns nil immediately and forever`() throws(VectorTestError) {
         let vector = try Vector(0..<0) { $0 }
-        var iterator = vector.makeIterator()
+        var iterator: Vector<Int>.Iterator = vector.makeIterator()
 
         for _ in 0..<100 {
             #expect(iterator.next() == nil)
@@ -376,7 +376,7 @@ extension VectorInvariantTests.Iterator {
     func `INVARIANT: Iterator count matches vector.count exactly`() throws(VectorTestError) {
         for size in [0, 1, 2, 10, 100, 1000] {
             let vector = try Vector(0..<size) { $0 }
-            var iterator = vector.makeIterator()
+            var iterator: Vector<Int>.Iterator = vector.makeIterator()
             var iteratedCount: Vector<Int>.Index.Count = 0
 
             while iterator.next() != nil {
@@ -394,7 +394,7 @@ extension VectorInvariantTests.Iterator {
     func `INVARIANT: Reversed iterator count matches vector.count exactly`() throws(VectorTestError) {
         for size in [0, 1, 2, 10, 100, 1000] {
             let vector = try Vector(0..<size) { $0 }
-            var iterator = vector.reversed().makeIterator()
+            var iterator: Vector<Int>.Reversed.Iterator = vector.reversed().makeIterator()
             var iteratedCount: Vector<Int>.Index.Count = 0
 
             while iterator.next() != nil {
@@ -524,10 +524,10 @@ extension VectorInvariantTests.Consistency {
         var results1: [Int] = []
         var results2: [Int] = []
 
-        var iter1 = vector.makeIterator()
+        var iter1: Vector<Int>.Iterator = vector.makeIterator()
         while let v = iter1.next() { results1.append(v) }
 
-        var iter2 = vector.makeIterator()
+        var iter2: Vector<Int>.Iterator = vector.makeIterator()
         while let v = iter2.next() { results2.append(v) }
 
         #expect(results1 == results2)
@@ -670,7 +670,7 @@ extension VectorInvariantTests.Boundaries {
     func `INVARIANT: Offset vectors work correctly`() throws(VectorTestError) {
         let vector = try Vector(100..<105) { $0 }
         var results: [Int] = []
-        var iter = vector.makeIterator()
+        var iter: Vector<Int>.Iterator = vector.makeIterator()
         while let v = iter.next() { results.append(v) }
 
         #expect(results == [100, 101, 102, 103, 104])
@@ -684,7 +684,7 @@ extension VectorInvariantTests.Boundaries {
 
         #expect(vector.count == 5)
 
-        var iter = vector.makeIterator()
+        var iter: Vector<Int>.Iterator = vector.makeIterator()
         #expect(iter.next() == 1_000_000)
         #expect(iter.next() == 1_000_001)
     }
@@ -694,7 +694,7 @@ extension VectorInvariantTests.Boundaries {
         // Use transforms that don't overflow
         let vector = try Vector(0..<5) { Int.max - 10 + $0 }
         var results: [Int] = []
-        var iter = vector.makeIterator()
+        var iter: Vector<Int>.Iterator = vector.makeIterator()
         while let v = iter.next() { results.append(v) }
 
         #expect(results.count == 5)
@@ -708,7 +708,7 @@ extension VectorInvariantTests.Boundaries {
         #expect(vector.count == 10)
 
         var results: [Int] = []
-        var iter = vector.makeIterator()
+        var iter: Vector<Int>.Iterator = vector.makeIterator()
         while let v = iter.next() { results.append(v) }
 
         #expect(results == [-5, -4, -3, -2, -1, 0, 1, 2, 3, 4])
@@ -720,7 +720,7 @@ extension VectorInvariantTests.Boundaries {
         let vector = try Vector(1..<6) { n in n * (n + 1) / 2 }
 
         var results: [Int] = []
-        var iter = vector.makeIterator()
+        var iter: Vector<Int>.Iterator = vector.makeIterator()
         while let v = iter.next() { results.append(v) }
 
         #expect(results == [1, 3, 6, 10, 15])
@@ -758,7 +758,7 @@ extension VectorStressTests.Stress {
             #expect(vector.count == 10)
 
             var sum = 0
-            var iter = vector.makeIterator()
+            var iter: Vector<Int>.Iterator = vector.makeIterator()
             while let v = iter.next() { sum += v }
 
             let expected = (i..<(i + 10)).map { $0 * 2 }.reduce(0, +)

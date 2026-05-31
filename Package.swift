@@ -71,6 +71,7 @@ let package = Package(
                 "Vector Primitives Standard Library Integration",
                 .product(name: "Sequence Primitives", package: "swift-sequence-primitives"),
                 .product(name: "Iterable", package: "swift-iterator-primitives"),
+                .product(name: "Iterator Chunk Primitives", package: "swift-iterator-primitives"),
             ]
         ),
         .target(

@@ -12,6 +12,8 @@
 public import Iterable
 public import Sequence_Primitives
 public import Vector_Primitive
+public import Iterator_Primitive
+public import Iterator_Chunk_Primitives
 
 // This ops module owns the Copyable-imposing iteration conformances for `Vector`
 // and `Vector.Reversed`, isolated here per [MOD-004]/[MOD-036]. `Vector` is a
@@ -73,11 +75,35 @@ extension Vector.Reversed where Bound: Copyable {
 extension Vector: Iterable where Bound: Copyable {
     /// The element type produced by iteration.
     public typealias Element = Bound
+
+    // Iterable binds the span adapter (the scalar `Iterator` keeps serving Sequenceable +
+    // Swift.Sequence via the shared `makeIterator()` above).
+    @_implements(Iterable, Iterator)
+    public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator>
+
+    @inlinable
+    @_lifetime(borrow self)
+    @_implements(Iterable, makeIterator())
+    public borrowing func iterableMakeIterator() -> Iterator_Primitive.Iterator.Materializing<Iterator> {
+        let scalar: Iterator = makeIterator()
+        return Iterator_Primitive.Iterator.Materializing(scalar)
+    }
 }
 
 extension Vector.Reversed: Iterable where Bound: Copyable {
     /// The element type produced by iteration.
     public typealias Element = Bound
+
+    @_implements(Iterable, Iterator)
+    public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator>
+
+    @inlinable
+    @_lifetime(borrow self)
+    @_implements(Iterable, makeIterator())
+    public borrowing func iterableMakeIterator() -> Iterator_Primitive.Iterator.Materializing<Iterator> {
+        let scalar: Iterator = makeIterator()
+        return Iterator_Primitive.Iterator.Materializing(scalar)
+    }
 }
 
 // MARK: - Sequence.Clearable (rides Sequenceable, the single-pass attachable)

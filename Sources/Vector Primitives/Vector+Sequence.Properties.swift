@@ -31,7 +31,7 @@ extension Vector where Bound: Copyable {
     @inlinable
     public func count(where predicate: (Bound) -> Bool) -> Index.Count {
         var count: Index.Count = .zero
-        var iterator = makeIterator()
+        var iterator: Iterator = makeIterator()
         while let element = iterator.next() {
             if predicate(element) { count += .one }
         }
@@ -57,7 +57,7 @@ extension Vector.Reversed where Bound: Copyable {
     @inlinable
     public func count(where predicate: (Bound) -> Bool) -> Vector<Bound>.Index.Count {
         var count: Vector<Bound>.Index.Count = .zero
-        var iterator = makeIterator()
+        var iterator: Iterator = makeIterator()
         while let element = iterator.next() {
             if predicate(element) { count += .one }
         }
