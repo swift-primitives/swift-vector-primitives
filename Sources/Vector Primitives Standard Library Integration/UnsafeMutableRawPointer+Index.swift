@@ -16,7 +16,7 @@ public import Index_Primitives
 extension UnsafeMutableRawPointer {
     /// Returns a pointer offset by the specified index position.
     @inlinable
-    public func advanced<Tag: ~Copyable>(
+    public func advanced<Tag: ~Copyable & ~Escapable>(
         by index: Index<Tag>
     ) -> Self {
         unsafe self.advanced(by: Int(bitPattern: index))

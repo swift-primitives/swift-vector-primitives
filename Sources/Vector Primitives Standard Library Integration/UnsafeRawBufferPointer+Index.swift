@@ -16,7 +16,7 @@ public import Index_Primitives
 extension UnsafeRawBufferPointer {
     /// Creates a buffer pointer from a start address and typed count.
     @inlinable
-    public init<Tag: ~Copyable>(
+    public init<Tag: ~Copyable & ~Escapable>(
         start: UnsafeRawPointer?,
         count: Index_Primitives.Index<Tag>.Count
     ) {
@@ -25,7 +25,7 @@ extension UnsafeRawBufferPointer {
 
     /// Accesses the byte at the given typed index.
     @inlinable
-    public subscript<Tag: ~Copyable>(
+    public subscript<Tag: ~Copyable & ~Escapable>(
         _ index: Index_Primitives.Index<Tag>
     ) -> UInt8 {
         unsafe self[Int(bitPattern: index)]

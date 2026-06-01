@@ -16,7 +16,7 @@ public import Index_Primitives
 extension UnsafeMutableRawBufferPointer {
     /// Creates a mutable buffer pointer from a start address and typed count.
     @inlinable
-    public init<Tag: ~Copyable>(
+    public init<Tag: ~Copyable & ~Escapable>(
         start: UnsafeMutableRawPointer?,
         count: Index_Primitives.Index<Tag>.Count
     ) {
@@ -25,7 +25,7 @@ extension UnsafeMutableRawBufferPointer {
 
     /// Allocates uninitialized memory with typed count and alignment.
     @inlinable
-    public static func allocate<Tag: ~Copyable>(
+    public static func allocate<Tag: ~Copyable & ~Escapable>(
         count: Index_Primitives.Index<Tag>.Count,
         alignment: Index_Primitives.Index<Tag>.Count
     ) -> Self {
@@ -34,7 +34,7 @@ extension UnsafeMutableRawBufferPointer {
 
     /// Accesses the byte at the given typed index.
     @inlinable
-    public subscript<Tag: ~Copyable>(
+    public subscript<Tag: ~Copyable & ~Escapable>(
         _ index: Index_Primitives.Index<Tag>
     ) -> UInt8 {
         get { unsafe self[Int(bitPattern: index)] }

@@ -33,7 +33,7 @@ public import Index_Primitives
 ///   - rhs: The typed count representing the upper bound.
 /// - Returns: A vector that produces `Index<Tag>` values.
 @inlinable
-public func ..< <Tag: ~Copyable>(
+public func ..< <Tag: ~Copyable & ~Escapable>(
     lhs: Index<Tag>,
     rhs: Index<Tag>.Count
 ) -> Vector<Index<Tag>> {
