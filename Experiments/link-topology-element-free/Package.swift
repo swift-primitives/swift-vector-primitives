@@ -5,7 +5,7 @@ let package = Package(
     name: "link-topology-element-free",
     platforms: [.macOS(.v26)],
     dependencies: [
-        .package(path: "../../../swift-index-primitives"),
+        .package(url: "https://github.com/swift-primitives/swift-index-primitives.git", branch: "main"),
         .package(path: "../../../swift-vector-primitives"),
     ],
     targets: [
