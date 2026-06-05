@@ -106,9 +106,9 @@ extension Vector.Reversed: Iterable where Bound: Copyable {
     }
 }
 
-// MARK: - Sequence.Clearable (rides Sequenceable, the single-pass attachable)
+// MARK: - removeAll()
 
-extension Vector: Sequence.Clearable where Bound: Copyable {
+extension Vector where Bound: Copyable {
     /// Removes all elements by collapsing the vector to empty.
     @inlinable
     public mutating func removeAll() {
@@ -116,7 +116,7 @@ extension Vector: Sequence.Clearable where Bound: Copyable {
     }
 }
 
-extension Vector.Reversed: Sequence.Clearable where Bound: Copyable {
+extension Vector.Reversed where Bound: Copyable {
     /// Removes all elements by collapsing the reversed vector to empty.
     @inlinable
     public mutating func removeAll() {
