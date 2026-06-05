@@ -23,7 +23,6 @@
 // The plural ops module's own source files (Vector+Iterable.swift,
 // Vector+Sequence.Properties.swift) import `Sequence_Primitives` and `Iterable`
 // directly; both are re-exported here so the conformances' associated `Iterable`
-// / `Sequenceable` / `Sequence.Clearable` surface is visible to consumers through
-// the umbrella.
+// / `Sequenceable` surface is visible to consumers through the umbrella.
 @_exported public import Sequence_Primitives
 @_exported public import Iterable

@@ -24,9 +24,9 @@ public import Iterator_Chunk_Primitives
 //
 // A single `borrowing makeIterator()` (the type module's `_makeSequenceIterator`
 // package window) satisfies BOTH `Iterable` (borrowing requirement) and
-// `Sequenceable` (consuming requirement, pulled in by `Sequence.Clearable`):
-// a borrowing witness satisfies a consuming protocol requirement. The two
-// attachables share the one `Iterator` associated-type binding, so NO
+// `Sequenceable` (consuming requirement): a borrowing witness satisfies a
+// consuming protocol requirement. The two attachables share the one `Iterator`
+// associated-type binding, so NO
 // `@_implements` split is needed (the slab pattern).
 
 // MARK: - Iterator.Protocol / IteratorProtocol Conformances

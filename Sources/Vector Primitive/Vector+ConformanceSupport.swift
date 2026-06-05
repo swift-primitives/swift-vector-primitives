@@ -16,8 +16,8 @@ public import Index_Primitives
 // The `Vector` (and `Vector.Reversed`) storage internals (`start`, `end`,
 // `transform`) and the iterator storage internals (`current`, `end`,
 // `transform`, `start`, `exhausted`) are `@usableFromInline internal`, so the
-// Copyable-imposing `Iterable` / `Sequenceable` (via `Sequence.Clearable`)
-// conformances — isolated in the plural `Vector Primitives` ops module per
+// Copyable-imposing `Iterable` / `Sequenceable` conformances and the `removeAll()`
+// method — isolated in the plural `Vector Primitives` ops module per
 // [MOD-004] — cannot reach them by source name across the module boundary.
 //
 // These `package`-scoped windows are the minimal access level that lets the ops
@@ -36,7 +36,7 @@ extension Vector where Bound: ~Copyable {
         Iterator(current: start, end: end, transform: transform)
     }
 
-    /// Clear window for the `Sequence.Clearable` conformance.
+    /// Clear window for the `removeAll()` method.
     @inlinable
     package mutating func _clear() {
         start = end
@@ -52,7 +52,7 @@ extension Vector.Reversed where Bound: ~Copyable {
         Iterator(start: start, end: end, transform: transform)
     }
 
-    /// Clear window for the `Sequence.Clearable` conformance.
+    /// Clear window for the `removeAll()` method.
     @inlinable
     package mutating func _clear() {
         start = end
