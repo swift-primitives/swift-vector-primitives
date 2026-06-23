@@ -1,6 +1,6 @@
 # Vector Dependency: Storage vs Buffer
 
-> **Dissolution note (2026-06-23)**: `Memory.Contiguous` was dissolved — the typed contiguous tier is now `Storage.Contiguous`, the read-capability protocol is `Span.Protocol` (the renamed/relocated `Memory.Contiguous.Protocol`), and owned raw bytes are `Memory.Heap`. References below are retained as the pre-dissolution design record; see `swift-institute/Research/memory-contiguous-dissolution.md`.
+> **Note:** `Memory.Contiguous` was dissolved 2026-06-23 → `Storage.Contiguous` (typed) / `Span.Protocol` (read capability) / `Memory.Heap` (raw bytes). See `swift-institute/Research/memory-contiguous-dissolution.md`.
 
 <!--
 ---
@@ -43,8 +43,8 @@ This research investigates whether Vector should depend on Buffer (and use Buffe
 | `.initialize(to:at:)` | 6 | Element initialization |
 | `.initialization = .linear(count:)` | 4 | State tracking |
 | `.copy()` | 1 | CoW uniqueness |
-| `.span` | 1 | Memory.Contiguous.Protocol witness |
-| `.withUnsafeBufferPointer()` | 1 | Memory.Contiguous.Protocol witness |
+| `.span` | 1 | Span.Protocol witness |
+| `.withUnsafeBufferPointer()` | 1 | Span.Protocol witness |
 
 Zero references to any `Buffer.` type.
 
@@ -100,7 +100,7 @@ extension Buffer.Linear.Bounded: Copyable where Element: Copyable {}
 | Subscript by index | Yes | No |
 | `span` property | Yes | No (iterators only) |
 | `withUnsafeBufferPointer` | Yes | No |
-| `Memory.Contiguous.Protocol` | Yes | No |
+| `Span.Protocol` | Yes | No |
 | CoW (`_makeUnique`) | Yes | No |
 | `mutableSpan` | Yes | No |
 
@@ -114,11 +114,11 @@ Buffer.Linear could provide indexed read/write access. A bounded linear buffer w
 
 **Verdict**: General-purpose. Any consumer of a linear buffer could want this. Not Vector-specific.
 
-#### 2. Span / Memory.Contiguous.Protocol
+#### 2. Span / Span.Protocol
 
-A linear buffer's elements are contiguous in [0, count). This is exactly what `Memory.Contiguous.Protocol` describes. The conformance is natural.
+A linear buffer's elements are contiguous in [0, count). This is exactly what `Span.Protocol` describes. The conformance is natural.
 
-**Verdict**: General-purpose. Buffer.Linear SHOULD conform to `Memory.Contiguous.Protocol`.
+**Verdict**: General-purpose. Buffer.Linear SHOULD conform to `Span.Protocol`.
 
 #### 3. Copy-on-Write
 
@@ -172,14 +172,14 @@ The three buffer disciplines describe initialization *patterns*. Vector's patter
 
 ### What About Vector.Inline?
 
-`Vector.Inline` currently uses `Storage<Element>.Inline<N>`. The equivalent Buffer type would be `Buffer<Element>.Linear.Inline<N>`. The same capabilities (subscript, span, Memory.Contiguous.Protocol) would need to exist on the Inline variant.
+`Vector.Inline` currently uses `Storage<Element>.Inline<N>`. The equivalent Buffer type would be `Buffer<Element>.Linear.Inline<N>`. The same capabilities (subscript, span, Span.Protocol) would need to exist on the Inline variant.
 
 ### Revised Dependency Architecture
 
 ```
          storage-primitives
                 ↑
-         buffer-primitives  (+ subscript, span, CoW, Memory.Contiguous.Protocol)
+         buffer-primitives  (+ subscript, span, CoW, Span.Protocol)
               ↑     ↑
     vector-primitives  data structures (Stack, Queue, Deque)
 ```
@@ -204,7 +204,7 @@ Vector is a consumer of Buffer, just like Stack and Queue. It uses a different s
 **Direction**: Enhance `Buffer.Linear.Bounded` (and `.Inline`) with general-purpose capabilities that any consumer of a linear buffer needs:
 
 1. **Subscript access** — indexed read/write into `[0, count)`
-2. **`Memory.Contiguous.Protocol` conformance** — `span` + `withUnsafeBufferPointer`
+2. **`Span.Protocol` conformance** — `span` + `withUnsafeBufferPointer`
 3. **Copy-on-Write** — `_makeUnique()` for value-type semantics when Copyable
 4. **MutableSpan** — CoW-protected mutable span access
 
@@ -233,6 +233,6 @@ These are not Vector-specific features. They are general capabilities of a bound
 
 **Date**: 2026-03-15
 
-**Reason**: The document identified that Vector should be built on Buffer.Linear (not raw Storage) after buffer-primitives gains general-purpose capabilities (subscript, Memory.Contiguous.Protocol, CoW, MutableSpan). The "next steps" require enhancing Buffer.Linear.Bounded and Buffer.Linear.Inline first. This was blocked by the buffer-primitives inline module split in February 2026, which restructured the buffer modules. The Buffer.Linear enhancements have not been implemented in the post-split structure.
+**Reason**: The document identified that Vector should be built on Buffer.Linear (not raw Storage) after buffer-primitives gains general-purpose capabilities (subscript, Span.Protocol, CoW, MutableSpan). The "next steps" require enhancing Buffer.Linear.Bounded and Buffer.Linear.Inline first. This was blocked by the buffer-primitives inline module split in February 2026, which restructured the buffer modules. The Buffer.Linear enhancements have not been implemented in the post-split structure.
 
-**Resume when**: Buffer.Linear.Bounded gains subscript access, Memory.Contiguous.Protocol conformance, and Copy-on-Write support, at which point Vector can be migrated to use Buffer as its substrate.
+**Resume when**: Buffer.Linear.Bounded gains subscript access, Span.Protocol conformance, and Copy-on-Write support, at which point Vector can be migrated to use Buffer as its substrate.
