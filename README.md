@@ -15,19 +15,30 @@ This package is part of **Story 2 of the data-structures cohort** (`data-structu
 ```swift
 import Vector_Primitives
 
-// Vector<Int> models [lower, upper) — a typed half-open range over Int.
-let v = Vector<Int>(lower: 0, upper: 10)
+// A Vector is a scalar generator over a half-open range: each element is produced
+// on demand by the transform, so there is no backing buffer to copy.
+let squares = try Vector(0..<10) { $0 * $0 }
 
-// Iteration via .forEach — no Int loop variables exposed.
-v.forEach { (index: Index<Int>) in
-    // index is typed; arithmetic stays in the Index<Int> + Offset domain
+// Borrowing iteration — the vector survives.
+squares.forEach { value in
+    print(value)                   // 0, 1, 4, 9, 16, …
 }
 
-// Views: drop / prefix without copying the underlying vector.
-let head = v.prefix(3)             // Vector.Prefix wrapping v with count = 3
-let tail = v.drop(4)               // Vector.Drop  wrapping v with count = 4
-let rhead = v.reversed.prefix(3)   // Vector.Reversed.Prefix
-let rtail = v.reversed.drop(4)     // Vector.Reversed.Drop
+// Consuming iteration — the vector is drained to empty.
+var consumable = try Vector(0..<5) { $0 }
+consumable.drain { value in
+    print(value)
+}
+
+// O(1) prefix / drop views that re-bound the range without recomputing elements.
+let head = squares.prefix.first(try .init(3))   // first 3 → 0, 1, 4
+let tail = squares.drop.first(try .init(4))      // drops 4 → 16, 25, 36, 49, 64, 81
+
+// Reverse the range, then iterate or slice the reversed view.
+let reversed = squares.reversed()
+reversed.forEach { value in
+    print(value)                   // 81, 64, 49, …
+}
 ```
 
 ---

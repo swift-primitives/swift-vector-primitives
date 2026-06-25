@@ -10,10 +10,10 @@
 // ===----------------------------------------------------------------------===//
 
 public import Iterable
+public import Iterator_Chunk_Primitives
+public import Iterator_Primitive
 public import Sequence_Primitives
 public import Vector_Primitive
-public import Iterator_Primitive
-public import Iterator_Chunk_Primitives
 
 // This ops module owns the Copyable-imposing iteration conformances for `Vector`
 // and `Vector.Reversed`, isolated here per [MOD-004]/[MOD-036]. `Vector` is a
@@ -76,11 +76,17 @@ extension Vector: Iterable where Bound: Copyable {
     /// The element type produced by iteration.
     public typealias Element = Bound
 
-    // Iterable binds the span adapter (the scalar `Iterator` keeps serving Sequenceable +
-    // Swift.Sequence via the shared `makeIterator()` above).
+    // The scalar `Iterator` keeps serving Sequenceable + Swift.Sequence via the shared
+    // `makeIterator()` above; Iterable binds the materializing span adapter below.
+    // reason: comma spacing inside @_implements conflicts with SwiftLint comma rule
+    // swift-format-ignore
+    /// The materializing iterator that satisfies the multipass `Iterable` requirement.
     @_implements(Iterable, Iterator)
     public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator>
 
+    // reason: comma spacing inside @_implements conflicts with SwiftLint comma rule
+    // swift-format-ignore
+    /// Returns an `Iterable` iterator wrapping the scalar cursor in a materializing adapter.
     @inlinable
     @_lifetime(borrow self)
     @_implements(Iterable, makeIterator())
@@ -94,9 +100,15 @@ extension Vector.Reversed: Iterable where Bound: Copyable {
     /// The element type produced by iteration.
     public typealias Element = Bound
 
+    // reason: comma spacing inside @_implements conflicts with SwiftLint comma rule
+    // swift-format-ignore
+    /// The materializing iterator that satisfies the multipass `Iterable` requirement.
     @_implements(Iterable, Iterator)
     public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator>
 
+    // reason: comma spacing inside @_implements conflicts with SwiftLint comma rule
+    // swift-format-ignore
+    /// Returns an `Iterable` iterator wrapping the scalar cursor in a materializing adapter.
     @inlinable
     @_lifetime(borrow self)
     @_implements(Iterable, makeIterator())

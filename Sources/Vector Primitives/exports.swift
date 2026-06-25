@@ -17,12 +17,11 @@
 // `Iterator` conformance) MUST import this plural module per SE-0444
 // MemberImportVisibility, since the conformances are declared here.
 
+// `Sequence_Primitives` and `Iterable` are imported directly by this module's own
+// source files (Vector+Iterable.swift, Vector+Sequence.Properties.swift) and are
+// re-exported here so the conformances' associated `Iterable` / `Sequenceable`
+// surface is visible to consumers through the umbrella.
+@_exported public import Iterable
+@_exported public import Sequence_Primitives
 @_exported public import Vector_Primitive
 @_exported public import Vector_Primitives_Standard_Library_Integration
-
-// The plural ops module's own source files (Vector+Iterable.swift,
-// Vector+Sequence.Properties.swift) import `Sequence_Primitives` and `Iterable`
-// directly; both are re-exported here so the conformances' associated `Iterable`
-// / `Sequenceable` surface is visible to consumers through the umbrella.
-@_exported public import Sequence_Primitives
-@_exported public import Iterable
