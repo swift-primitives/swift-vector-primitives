@@ -118,20 +118,6 @@ extension Vector.Reversed: Iterable where Bound: Copyable {
     }
 }
 
-// MARK: - Sequenceable (single-pass, consuming attachable; scalar path)
-//
-// The shared borrowing `makeIterator()` above fulfils Sequenceable's consuming
-// requirement (a borrowing witness satisfies a consuming requirement), binding the
-// scalar `Iterator` — the same factory that already serves `Iterable` and
-// `Swift.Sequence`. This conformance was described in the comments above but never
-// declared; the `Sequence.Protocol` → `Iterable` + `Sequenceable` migration left it
-// out, which is what made the `.satisfies` / `.reduce` / `.contains` Sequenceable
-// facades unavailable on `Vector` (the "(test break)" noted at commit 8e2d751).
-
-extension Vector: Sequenceable where Bound: Copyable {}
-
-extension Vector.Reversed: Sequenceable where Bound: Copyable {}
-
 // MARK: - removeAll()
 
 extension Vector where Bound: Copyable {
