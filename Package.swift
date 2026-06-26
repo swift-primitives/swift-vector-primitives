@@ -72,6 +72,7 @@ let package = Package(
                 .product(name: "Sequence Primitives", package: "swift-sequence-primitives"),
                 .product(name: "Iterable", package: "swift-iterator-primitives"),
                 .product(name: "Iterator Chunk Primitives", package: "swift-iterator-primitives"),
+                .product(name: "Iterator Witness Primitives", package: "swift-iterator-primitives"),
             ]
         ),
         .target(

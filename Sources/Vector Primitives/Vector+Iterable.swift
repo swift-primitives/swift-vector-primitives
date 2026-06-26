@@ -12,6 +12,7 @@
 public import Iterable
 public import Iterator_Chunk_Primitives
 public import Iterator_Primitive
+public import Iterator_Witness_Primitives
 public import Sequence_Primitives
 public import Vector_Primitive
 
@@ -82,7 +83,7 @@ extension Vector: Iterable where Bound: Copyable {
     // swift-format-ignore
     /// The materializing iterator that satisfies the multipass `Iterable` requirement.
     @_implements(Iterable, Iterator)
-    public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator>
+    public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator_Primitive.Iterator.Witness<Bound, Never>>
 
     // reason: comma spacing inside @_implements conflicts with SwiftLint comma rule
     // swift-format-ignore
@@ -90,9 +91,9 @@ extension Vector: Iterable where Bound: Copyable {
     @inlinable
     @_lifetime(borrow self)
     @_implements(Iterable, makeIterator())
-    public borrowing func iterableMakeIterator() -> Iterator_Primitive.Iterator.Materializing<Iterator> {
+    public borrowing func iterableMakeIterator() -> Iterator_Primitive.Iterator.Materializing<Iterator_Primitive.Iterator.Witness<Bound, Never>> {
         let scalar: Iterator = makeIterator()
-        return Iterator_Primitive.Iterator.Materializing(scalar)
+        return Iterator_Primitive.Iterator.Materializing(Iterator_Primitive.Iterator.Witness(scalar))
     }
 }
 
@@ -104,7 +105,7 @@ extension Vector.Reversed: Iterable where Bound: Copyable {
     // swift-format-ignore
     /// The materializing iterator that satisfies the multipass `Iterable` requirement.
     @_implements(Iterable, Iterator)
-    public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator>
+    public typealias IterableIterator = Iterator_Primitive.Iterator.Materializing<Iterator_Primitive.Iterator.Witness<Bound, Never>>
 
     // reason: comma spacing inside @_implements conflicts with SwiftLint comma rule
     // swift-format-ignore
@@ -112,9 +113,9 @@ extension Vector.Reversed: Iterable where Bound: Copyable {
     @inlinable
     @_lifetime(borrow self)
     @_implements(Iterable, makeIterator())
-    public borrowing func iterableMakeIterator() -> Iterator_Primitive.Iterator.Materializing<Iterator> {
+    public borrowing func iterableMakeIterator() -> Iterator_Primitive.Iterator.Materializing<Iterator_Primitive.Iterator.Witness<Bound, Never>> {
         let scalar: Iterator = makeIterator()
-        return Iterator_Primitive.Iterator.Materializing(scalar)
+        return Iterator_Primitive.Iterator.Materializing(Iterator_Primitive.Iterator.Witness(scalar))
     }
 }
 
