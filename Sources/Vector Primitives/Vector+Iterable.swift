@@ -13,7 +13,6 @@ public import Iterable
 public import Iterator_Chunk_Primitives
 public import Iterator_Primitive
 public import Iterator_Witness_Primitives
-public import Sequence_Primitives
 public import Vector_Primitive
 
 // This ops module owns the Copyable-imposing iteration conformances for `Vector`
