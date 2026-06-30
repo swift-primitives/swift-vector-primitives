@@ -17,7 +17,8 @@ import Linter_Primitives_Rules
 
 Lint.run(dependencies: [
     .package(
-        path: "../swift-primitives-linter-rules",
+        url: "https://github.com/swift-primitives/swift-primitives-linter-rules.git",
+        branch: "main",
         products: ["Linter Primitives Rules"]
     ),
 ]) {
